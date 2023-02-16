@@ -2,6 +2,7 @@
 using Pandora.Helpers;
 using Pandora.Network;
 using Pandora.UI;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -30,6 +31,22 @@ namespace Pandora
             }
         }
 
+        private class DownloadDetail
+        {
+            public string Progress { get; set; }
+            public string RemotePath { get; set; }
+            public string RemoteFile { get; set; }
+            public string LocalPath { get; set; }
+
+            public DownloadDetail(string remotePath, string remoteFile, string localPath)
+            {
+                Progress = string.Empty;
+                RemotePath = remotePath;
+                RemoteFile = remoteFile;
+                LocalPath = localPath;
+            }
+        }
+
         private Sdl2Window? m_window;
         private GraphicsDevice? m_graphicsDevice;
         private CommandList? m_commandList;
@@ -42,7 +59,9 @@ namespace Pandora
         private Client.ClientFileInfo[]? m_cachedRemoteFileInfo;
 
         private List<LogDetail> m_logDetails = new();
-        private bool m_logDetailsChanged = false;
+        private bool m_logDetailsChanged = false; 
+        private List<DownloadDetail> m_downloadDetails = new();
+        private bool m_downloadDetailsChanged = false;
         private bool m_busy = false;
 
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath();
@@ -182,6 +201,7 @@ namespace Pandora
             m_okDialog.Render();
             if (m_remoteContextDialog.Render() == RemoteContextDialog.RemoteContextAction.Download)
             {
+                var downloadPath = m_remoteContextDialog.DownloadPath;
                 Debug.Print("Download");
             }
 
@@ -189,8 +209,10 @@ namespace Pandora
             ImGui.SetWindowSize(new Vector2(m_window.Width, m_window.Height));
             ImGui.SetWindowPos(new Vector2(0, 0), ImGuiCond.Always);
 
+            ImGui.Text("Log:");
+
             ImGuiTableFlags flags = ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX | ImGuiTableFlags.ScrollY | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg;
-            if (ImGui.BeginTable("table_sorting", 2, flags, new Vector2(m_window.Width - 16, 240), 0.0f))
+            if (ImGui.BeginTable("tableLog", 2, flags, new Vector2(m_window.Width - 16, 170), 0.0f))
             {
                 ImGui.TableSetupColumn("Log Type", ImGuiTableColumnFlags.WidthFixed, 75.0f, 0);
                 ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthStretch, 300.0f, 1);
@@ -254,7 +276,7 @@ namespace Pandora
 
             var lineHeight = ImGui.GetTextLineHeight() + 4;
 
-            if (ImGui.BeginChildFrame(1, new Vector2(200, m_window.Height - 358), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(1, new Vector2(200, m_window.Height - (358 + 78)), ImGuiWindowFlags.None))
             {
                 var specialFolders = Utility.GetSpecialFolders();
                 foreach (var specialFolder in specialFolders)
@@ -271,7 +293,7 @@ namespace Pandora
 
             ImGui.SameLine();
 
-            if (ImGui.BeginChildFrame(2, new Vector2(halfWidth - 222, m_window.Height - 358), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(2, new Vector2(halfWidth - 222, m_window.Height - (358 + 78)), ImGuiWindowFlags.None))
             {
                 var directoryInfo = new DirectoryInfo(LocalSelectedFolder);
                 if (directoryInfo.Parent != null)
@@ -301,7 +323,7 @@ namespace Pandora
             {
                 ImGui.BeginDisabled();
             }
-            if (ImGui.BeginChildFrame(3, new Vector2(halfWidth - 14, m_window.Height - 358), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(3, new Vector2(halfWidth - 14, m_window.Height - (358 + 78)), ImGuiWindowFlags.None))
             {
                 if (m_client != null)
                 {
@@ -355,7 +377,7 @@ namespace Pandora
                             }
                             else if (state == UIControls.SelectableState.ShowContext)
                             {
-                                m_remoteContextDialog.DownloadInfo = clientFileInfo.Path + clientFileInfo.Name + "/";
+                                m_remoteContextDialog.DownloadPath = clientFileInfo.Path + clientFileInfo.Name + "/";
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
@@ -371,7 +393,7 @@ namespace Pandora
                             var state = UIControls.Selectable(ref selected, clientFileInfo.Name, new Vector2(halfWidth - 28, lineHeight), UIControls.SelectableIcon.Directory);
                             if (state == UIControls.SelectableState.ShowContext) 
                             {
-                                m_remoteContextDialog.DownloadInfo = clientFileInfo.Path + clientFileInfo.Name;
+                                m_remoteContextDialog.DownloadPath = clientFileInfo.Path + clientFileInfo.Name;
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
@@ -380,10 +402,54 @@ namespace Pandora
                 }
                 ImGui.EndChildFrame();
             }
-
             if (disabled)
             {
                 ImGui.EndDisabled();
+            }
+
+            ImGui.Spacing();
+
+            ImGui.Text("Downloads:");
+
+            if (ImGui.BeginTable("tableDownloads", 2, flags, new Vector2(m_window.Width - 16, 100), 0.0f))
+            {
+                ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 75.0f, 0);
+                ImGui.TableSetupColumn("File", ImGuiTableColumnFlags.WidthStretch, 300.0f, 1);
+                ImGui.TableSetupScrollFreeze(0, 1);
+                ImGui.TableHeadersRow();
+
+                for (var i = 0; i < m_logDetails.Count; i++)
+                {
+                    ImGui.PushID(i);
+                    ImGui.TableNextRow(ImGuiTableRowFlags.None, 22);
+
+                    ImGui.TableNextColumn();
+                    var logTypeWidth = ImGui.GetColumnWidth();
+                    ImGui.PushItemWidth(logTypeWidth);
+                    ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
+                    string logType = "0%";// m_logDetails[i].LogType;
+                    ImGui.InputText($"###logType{i}", ref logType, 0, ImGuiInputTextFlags.ReadOnly);
+                    ImGui.PopStyleColor();
+                    ImGui.PopItemWidth();
+
+                    ImGui.TableNextColumn();
+                    var messageWidth = ImGui.GetColumnWidth();
+                    ImGui.PushItemWidth(messageWidth);
+                    ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
+                    string message = $"somewarez_{i + 1}.rar";// m_logDetails[i].Message;
+                    ImGui.InputText($"###message{i}", ref message, 0, ImGuiInputTextFlags.ReadOnly);
+                    ImGui.PopStyleColor();
+                    ImGui.PopItemWidth();
+
+                    ImGui.PopID();
+                }
+
+                //if (m_logDetailsChanged)
+                //{
+                //    m_logDetailsChanged = false;
+                //    ImGui.SetScrollHereY();
+                //}
+                ImGui.EndTable();
             }
 
             ImGui.SetCursorPosY(m_window.Height - 40);

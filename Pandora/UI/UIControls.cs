@@ -146,7 +146,7 @@ namespace Pandora.UI
                 selected = true;
                 status = SelectableState.Clicked;
             }
-            else if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Right))
+            else if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 status = SelectableState.ShowContext;
             }
@@ -160,7 +160,7 @@ namespace Pandora.UI
             var iconPadding = 4;
             var iconSize = size.Y - iconPadding;
             var iconPosition = ImGui.GetWindowPos() + origPos;
-            iconPosition.Y -= ImGui.GetScrollY();
+            iconPosition.Y -= ImGui.GetScrollY() + 2;
 
             if (selectableIcon == SelectableIcon.File)
             {

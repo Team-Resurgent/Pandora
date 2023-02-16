@@ -51,7 +51,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FluentFTP" Version="44.0.1" />
 		<PackageReference Include="ImGui.NET" Version="1.89.4" />
 		<PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
 	</ItemGroup>
@@ -63,6 +62,12 @@
 	<ItemGroup>
 	  <None Include="..\LICENSE.md" Link="LICENSE.md" />
 	  <None Include="..\Pandora.nfo" Link="Pandora.nfo" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="System.Net.FtpClient">
+	    <HintPath>..\Libraries\System.Net.FTPClient\System.Net.FtpClient.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

@@ -10,7 +10,7 @@ namespace Pandora
             Download
         }
 
-        public string DownloadInfo { get; set; } = string.Empty;
+        public string DownloadPath { get; set; } = string.Empty;
 
         private bool m_show = false;
 
@@ -32,7 +32,7 @@ namespace Pandora
                 return RemoteContextAction.None;
             }
 
-            if (ImGui.Selectable("Download", false, ImGuiSelectableFlags.None))
+            if (ImGui.Selectable($"Download '{DownloadPath}'", false, ImGuiSelectableFlags.None))
             {
                 return RemoteContextAction.Download;
             }

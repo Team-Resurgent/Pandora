@@ -1,11 +1,11 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using System.Diagnostics;
-using FluentFTP;
-using FluentFTP.Exceptions;
 using System.ComponentModel;
 using System;
+using System.Net.FtpClient;
 using Veldrid.MetalBindings;
+using System.Net;
 
 namespace Pandora.Network
 {
@@ -26,7 +26,7 @@ namespace Pandora.Network
         }
 
         private TcpClient? m_tcpClient;
-
+        
         private FtpClient? m_ftpClient;
 
         public delegate void ErrorEventHandler(object sender, string error);
@@ -162,9 +162,19 @@ namespace Pandora.Network
 
             try
             {
-                m_ftpClient = new FtpClient(host, user, pass, port);
-                var profile = m_ftpClient.AutoConnect();
-                if (profile == null)
+                m_ftpClient = new FtpClient
+                {
+                    Credentials = new NetworkCredential(user, pass),
+                    Host = host,
+                    Port = port,
+                    EncryptionMode = FtpEncryptionMode.None
+                };
+
+                try
+                {
+                    m_ftpClient.Connect();
+                }
+                catch
                 {
                     OnError?.Invoke(this, "ProcessPrivMsg: Unable to connect to FTP, disconnecting.");
                     m_disconnectRequested = true;
@@ -192,7 +202,7 @@ namespace Pandora.Network
 
         public ClientFileInfo[]? GetFiles(string path)
         {
-            if (m_ftpClient == null || m_ftpRady == false)
+            if (m_ftpClient == null || m_ftpRady == false || m_disconnectRequested)
             {
                 return null;
             }
@@ -201,15 +211,17 @@ namespace Pandora.Network
             {
                 var files = new List<ClientFileInfo>();
 
-                foreach (FtpListItem item in m_ftpClient.GetListing(path))
+                var ftpListing = m_ftpClient.GetListing(path, FtpListOption.AllFiles);
+
+                foreach (var item in ftpListing)
                 {
                     var clientFileInfo = new ClientFileInfo();
 
-                    if (item.Type == FtpObjectType.File)
+                    if (item.Type == FtpFileSystemObjectType.File)
                     {
                         clientFileInfo.FileType = FileType.File;
                     }
-                    else if (item.Type == FtpObjectType.Directory)
+                    else if (item.Type == FtpFileSystemObjectType.Directory)
                     {
                         clientFileInfo.FileType = FileType.Directory;
                     }
@@ -350,26 +362,8 @@ namespace Pandora.Network
                 m_disconnected = true;
                 m_ftpRady = false;
 
-                try
-                {
-                    if (m_ftpClient != null)
-                    {
-                        m_ftpClient?.Dispose();
-                    }
-                }
-                catch 
-                {
-                    // ignore
-                }
-
-                try
-                {
-                    m_tcpClient?.Dispose();
-                }
-                catch
-                {
-                    // ignore
-                }
+                m_ftpClient?.Dispose();
+                m_tcpClient?.Dispose();
 
                 OnDisconnected?.Invoke(this);
 
