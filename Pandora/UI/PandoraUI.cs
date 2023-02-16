@@ -61,7 +61,6 @@ namespace Pandora
         private List<LogDetail> m_logDetails = new();
         private bool m_logDetailsChanged = false; 
         private List<DownloadDetail> m_downloadDetails = new();
-        private bool m_downloadDetailsChanged = false;
         private bool m_busy = false;
 
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath();
@@ -123,7 +122,6 @@ namespace Pandora
             m_graphicsDevice.Dispose();
             m_client?.Dispose();
         }
-
 
         private void LogMessage(string logType, string message)
         {
@@ -201,7 +199,51 @@ namespace Pandora
             m_okDialog.Render();
             if (m_remoteContextDialog.Render() == RemoteContextDialog.RemoteContextAction.Download)
             {
-                var downloadPath = m_remoteContextDialog.DownloadPath;
+                var remotePath = m_remoteContextDialog.RemotePath;
+                var localPath = m_remoteContextDialog.LocalPath;
+
+                new Thread(() =>
+                {
+                    if (remotePath.EndsWith("/"))
+                    {
+                        if (m_client != null)
+                        {                            
+                            var files = m_client.GetFiles(remotePath);
+                            if (files != null)
+                            {
+                                foreach (var file in files)
+                                {
+                                    if (file.Name.Equals(".."))
+                                    {
+                                        continue;
+                                    }
+                                    if (file.FileType == Client.FileType.File)
+                                    {
+                                        var downloadDetail = new DownloadDetail(file.Path, file.Name, localPath);
+                                        m_downloadDetails.Add(downloadDetail);
+                                    }
+                                    else if(file.FileType == Client.FileType.Directory)
+                                    {
+                                        var downloadDetail = new DownloadDetail(file.Path + file.Name + "/", string.Empty, Path.Combine(localPath, file.Name));
+                                        m_downloadDetails.Add(downloadDetail);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var position = remotePath.LastIndexOf("/", RemoteSelectedFolder.Length - 1);
+                        if (position != -1)
+                        {
+                            var remoteFile = remotePath.Substring(position + 1);
+                            remotePath = remotePath.Substring(0, position + 1);
+                            var downloadDetail = new DownloadDetail(remotePath, remoteFile, localPath);
+                            m_downloadDetails.Add(downloadDetail);
+                        }
+                    }
+
+                }).Start();
                 Debug.Print("Download");
             }
 
@@ -377,7 +419,8 @@ namespace Pandora
                             }
                             else if (state == UIControls.SelectableState.ShowContext)
                             {
-                                m_remoteContextDialog.DownloadPath = clientFileInfo.Path + clientFileInfo.Name + "/";
+                                m_remoteContextDialog.RemotePath = clientFileInfo.Path + clientFileInfo.Name + "/";
+                                m_remoteContextDialog.LocalPath = localSelectedFolder;
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
@@ -393,7 +436,8 @@ namespace Pandora
                             var state = UIControls.Selectable(ref selected, clientFileInfo.Name, new Vector2(halfWidth - 28, lineHeight), UIControls.SelectableIcon.Directory);
                             if (state == UIControls.SelectableState.ShowContext) 
                             {
-                                m_remoteContextDialog.DownloadPath = clientFileInfo.Path + clientFileInfo.Name;
+                                m_remoteContextDialog.RemotePath = clientFileInfo.Path + clientFileInfo.Name;
+                                m_remoteContextDialog.LocalPath = localSelectedFolder;
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
@@ -411,44 +455,59 @@ namespace Pandora
 
             ImGui.Text("Downloads:");
 
-            if (ImGui.BeginTable("tableDownloads", 2, flags, new Vector2(m_window.Width - 16, 100), 0.0f))
+            if (ImGui.BeginTable("tableDownloads", 4, flags, new Vector2(m_window.Width - 16, 100), 0.0f))
             {
                 ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 75.0f, 0);
-                ImGui.TableSetupColumn("File", ImGuiTableColumnFlags.WidthStretch, 300.0f, 1);
+                ImGui.TableSetupColumn("Remote Path", ImGuiTableColumnFlags.WidthFixed, 300.0f, 1);
+                ImGui.TableSetupColumn("Remote Name", ImGuiTableColumnFlags.WidthFixed, 75.0f, 2);
+                ImGui.TableSetupColumn("Local Path", ImGuiTableColumnFlags.WidthStretch, 300.0f, 3);
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableHeadersRow();
 
-                for (var i = 0; i < m_logDetails.Count; i++)
+                for (var i = 0; i < m_downloadDetails.Count; i++)
                 {
                     ImGui.PushID(i);
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 22);
 
                     ImGui.TableNextColumn();
-                    var logTypeWidth = ImGui.GetColumnWidth();
-                    ImGui.PushItemWidth(logTypeWidth);
+                    var progressWidth = ImGui.GetColumnWidth();
+                    ImGui.PushItemWidth(progressWidth);
                     ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-                    string logType = "0%";// m_logDetails[i].LogType;
-                    ImGui.InputText($"###logType{i}", ref logType, 0, ImGuiInputTextFlags.ReadOnly);
+                    string progress = m_downloadDetails[i].Progress;
+                    ImGui.InputText($"###progress{i}", ref progress, 0, ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopStyleColor();
                     ImGui.PopItemWidth();
 
                     ImGui.TableNextColumn();
-                    var messageWidth = ImGui.GetColumnWidth();
-                    ImGui.PushItemWidth(messageWidth);
+                    var remotePathWidth = ImGui.GetColumnWidth();
+                    ImGui.PushItemWidth(remotePathWidth);
                     ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-                    string message = $"somewarez_{i + 1}.rar";// m_logDetails[i].Message;
-                    ImGui.InputText($"###message{i}", ref message, 0, ImGuiInputTextFlags.ReadOnly);
+                    string remotePath = m_downloadDetails[i].RemotePath;
+                    ImGui.InputText($"###remotePath{i}", ref remotePath, 0, ImGuiInputTextFlags.ReadOnly);
+                    ImGui.PopStyleColor();
+                    ImGui.PopItemWidth();
+
+                    ImGui.TableNextColumn();
+                    var remoteFileWidth = ImGui.GetColumnWidth();
+                    ImGui.PushItemWidth(remoteFileWidth);
+                    ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
+                    string remoteFile = m_downloadDetails[i].RemoteFile;
+                    ImGui.InputText($"###remoteFile{i}", ref remoteFile, 0, ImGuiInputTextFlags.ReadOnly);
+                    ImGui.PopStyleColor();
+                    ImGui.PopItemWidth();
+
+                    ImGui.TableNextColumn();
+                    var localPathWidth = ImGui.GetColumnWidth();
+                    ImGui.PushItemWidth(localPathWidth);
+                    ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
+                    string localPath = m_downloadDetails[i].LocalPath;
+                    ImGui.InputText($"###localPath{i}", ref localPath, 0, ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopStyleColor();
                     ImGui.PopItemWidth();
 
                     ImGui.PopID();
                 }
 
-                //if (m_logDetailsChanged)
-                //{
-                //    m_logDetailsChanged = false;
-                //    ImGui.SetScrollHereY();
-                //}
                 ImGui.EndTable();
             }
 
