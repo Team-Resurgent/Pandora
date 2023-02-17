@@ -14,7 +14,7 @@
 		<PublishReadyToRun>true</PublishReadyToRun>
 		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 		<OutputType>WinExe</OutputType>
-		<AssemblyName>Pandora</AssemblyName>
+		<AssemblyName>pandora</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
