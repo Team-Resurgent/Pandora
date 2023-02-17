@@ -2,13 +2,9 @@
 using Pandora.Helpers;
 using Pandora.Network;
 using Pandora.UI;
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Numerics;
-using System.Reflection.Emit;
 using Veldrid;
-using Veldrid.MetalBindings;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
@@ -31,39 +27,19 @@ namespace Pandora
             }
         }
 
-        private class DownloadDetail
-        {
-            public string Progress { get; set; }
-            public string RemotePath { get; set; }
-            public string RemoteFile { get; set; }
-            public string LocalPath { get; set; }
-
-            public DownloadDetail(string remotePath, string remoteFile, string localPath)
-            {
-                Progress = string.Empty;
-                RemotePath = remotePath;
-                RemoteFile = remoteFile;
-                LocalPath = localPath;
-            }
-        }
-
         private Sdl2Window? m_window;
         private GraphicsDevice? m_graphicsDevice;
         private CommandList? m_commandList;
         private ImGuiController? m_controller;
-        private PathPicker? m_inputFolderPicker;
-        private PathPicker? m_outputFolderPicker;
-        private OkDialog? m_okDialog;
         private RemoteContextDialog m_remoteContextDialog = new();
         private Client? m_client;
-        private Client.ClientFileInfo[]? m_cachedRemoteFileInfo;
+        private ClientFileInfo[]? m_cachedRemoteFileInfo;
 
         private List<LogDetail> m_logDetails = new();
         private bool m_logDetailsChanged = false; 
-        private List<DownloadDetail> m_downloadDetails = new();
         private bool m_busy = false;
 
-        public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath();
+        public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath() ?? string.Empty;
 
         public string RemoteSelectedFolder { get; set; } = "/";
         
@@ -75,18 +51,6 @@ namespace Pandora
             m_controller = new ImGuiController(m_graphicsDevice, m_graphicsDevice.MainSwapchain.Framebuffer.OutputDescription, m_window.Width, m_window.Height);
 
             UIControls.SetXboxTheme();
-
-            m_inputFolderPicker = new PathPicker
-            {
-                Mode = PathPicker.PickerMode.Folder
-            };
-
-            m_outputFolderPicker = new PathPicker
-            {
-                Mode = PathPicker.PickerMode.Folder
-            };
-
-            m_okDialog= new OkDialog();
 
             m_window.Resized += () =>
             {
@@ -188,15 +152,11 @@ namespace Pandora
 
         private void RenderUI()
         {
-            if (m_window == null ||
-                m_inputFolderPicker == null ||
-                m_outputFolderPicker == null ||
-                m_okDialog == null)
+            if (m_window == null)
             {
                 return;
             }
 
-            m_okDialog.Render();
             if (m_remoteContextDialog.Render() == RemoteContextDialog.RemoteContextAction.Download)
             {
                 var remotePath = m_remoteContextDialog.RemotePath;
@@ -204,47 +164,12 @@ namespace Pandora
 
                 new Thread(() =>
                 {
-                    if (remotePath.EndsWith("/"))
+                    if (m_client == null)
                     {
-                        if (m_client != null)
-                        {                            
-                            var files = m_client.GetFiles(remotePath);
-                            if (files != null)
-                            {
-                                foreach (var file in files)
-                                {
-                                    if (file.Name.Equals(".."))
-                                    {
-                                        continue;
-                                    }
-                                    if (file.FileType == Client.FileType.File)
-                                    {
-                                        var downloadDetail = new DownloadDetail(file.Path, file.Name, localPath);
-                                        m_downloadDetails.Add(downloadDetail);
-                                    }
-                                    else if(file.FileType == Client.FileType.Directory)
-                                    {
-                                        var downloadDetail = new DownloadDetail(file.Path + file.Name + "/", string.Empty, Path.Combine(localPath, file.Name));
-                                        m_downloadDetails.Add(downloadDetail);
-                                    }
-                                }
-                            }
-                        }
+                        return;
                     }
-                    else
-                    {
-                        var position = remotePath.LastIndexOf("/", RemoteSelectedFolder.Length - 1);
-                        if (position != -1)
-                        {
-                            var remoteFile = remotePath.Substring(position + 1);
-                            remotePath = remotePath.Substring(0, position + 1);
-                            var downloadDetail = new DownloadDetail(remotePath, remoteFile, localPath);
-                            m_downloadDetails.Add(downloadDetail);
-                        }
-                    }
-
+                    m_client.AddFilesToDownloadStore(RemoteSelectedFolder, remotePath, localPath);                                        
                 }).Start();
-                Debug.Print("Download");
             }
 
             ImGui.Begin("Main", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
@@ -371,14 +296,14 @@ namespace Pandora
                 {
                     if (m_cachedRemoteFileInfo == null)
                     {
-                        if (!m_busy && m_client.CanGetFiles())
+                        if (m_client.CanGetFiles() && !m_busy)
                         {
                             m_busy = true;
                             new Thread(() =>
                             {
                                 try
                                 {
-                                    m_cachedRemoteFileInfo = m_client.GetFiles(RemoteSelectedFolder);
+                                    m_cachedRemoteFileInfo = m_client.GetFiles(RemoteSelectedFolder);                                    
                                 } 
                                 catch (Exception ex)
                                 {
@@ -394,7 +319,7 @@ namespace Pandora
                     {
                         foreach (var clientFileInfo in filesToProcess)
                         {
-                            if (clientFileInfo.FileType == Client.FileType.File)
+                            if (clientFileInfo.FileType == FileType.File)
                             {
                                 continue;
                             }
@@ -420,14 +345,14 @@ namespace Pandora
                             else if (state == UIControls.SelectableState.ShowContext)
                             {
                                 m_remoteContextDialog.RemotePath = clientFileInfo.Path + clientFileInfo.Name + "/";
-                                m_remoteContextDialog.LocalPath = localSelectedFolder;
+                                m_remoteContextDialog.LocalPath = Path.Combine(localSelectedFolder, clientFileInfo.Name); 
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
 
                         foreach (var clientFileInfo in filesToProcess)
                         {
-                            if (clientFileInfo.FileType == Client.FileType.Directory)
+                            if (clientFileInfo.FileType == FileType.Directory)
                             {
                                 continue;
                             }
@@ -459,12 +384,13 @@ namespace Pandora
             {
                 ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 75.0f, 0);
                 ImGui.TableSetupColumn("Remote Path", ImGuiTableColumnFlags.WidthFixed, 300.0f, 1);
-                ImGui.TableSetupColumn("Remote Name", ImGuiTableColumnFlags.WidthFixed, 75.0f, 2);
+                ImGui.TableSetupColumn("Remote File", ImGuiTableColumnFlags.WidthFixed, 75.0f, 2);
                 ImGui.TableSetupColumn("Local Path", ImGuiTableColumnFlags.WidthStretch, 300.0f, 3);
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableHeadersRow();
 
-                for (var i = 0; i < m_downloadDetails.Count; i++)
+                var downloadDetails = DownloadDetailStore.GetDownloadDetails();
+                for (var i = 0; i < downloadDetails.Length; i++)
                 {
                     ImGui.PushID(i);
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 22);
@@ -473,7 +399,7 @@ namespace Pandora
                     var progressWidth = ImGui.GetColumnWidth();
                     ImGui.PushItemWidth(progressWidth);
                     ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-                    string progress = m_downloadDetails[i].Progress;
+                    string progress = downloadDetails[i].Progress;
                     ImGui.InputText($"###progress{i}", ref progress, 0, ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopStyleColor();
                     ImGui.PopItemWidth();
@@ -482,7 +408,7 @@ namespace Pandora
                     var remotePathWidth = ImGui.GetColumnWidth();
                     ImGui.PushItemWidth(remotePathWidth);
                     ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-                    string remotePath = m_downloadDetails[i].RemotePath;
+                    string remotePath = downloadDetails[i].RemotePath;
                     ImGui.InputText($"###remotePath{i}", ref remotePath, 0, ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopStyleColor();
                     ImGui.PopItemWidth();
@@ -491,7 +417,7 @@ namespace Pandora
                     var remoteFileWidth = ImGui.GetColumnWidth();
                     ImGui.PushItemWidth(remoteFileWidth);
                     ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-                    string remoteFile = m_downloadDetails[i].RemoteFile;
+                    string remoteFile = downloadDetails[i].RemoteFile;
                     ImGui.InputText($"###remoteFile{i}", ref remoteFile, 0, ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopStyleColor();
                     ImGui.PopItemWidth();
@@ -500,14 +426,13 @@ namespace Pandora
                     var localPathWidth = ImGui.GetColumnWidth();
                     ImGui.PushItemWidth(localPathWidth);
                     ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-                    string localPath = m_downloadDetails[i].LocalPath;
+                    string localPath = downloadDetails[i].LocalPath;
                     ImGui.InputText($"###localPath{i}", ref localPath, 0, ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopStyleColor();
                     ImGui.PopItemWidth();
 
                     ImGui.PopID();
-                }
-
+                }                
                 ImGui.EndTable();
             }
 
@@ -549,6 +474,27 @@ namespace Pandora
                         Debug.Print("retry sever");
                     }
                 }).Start();                
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Clear Queue", new Vector2(100, 30)))
+            {
+                DownloadDetailStore.ClearDownloadDeatails();
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Clear Completed", new Vector2(100, 30)))
+            {
+                DownloadDetailStore.ClearCompletedDownloadDeatails();
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Retry Failed", new Vector2(100, 30)))
+            {
+                DownloadDetailStore.RetryDownloadDeatails();
             }
 
             ImGui.End();

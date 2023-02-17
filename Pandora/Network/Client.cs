@@ -1,30 +1,12 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using System.Diagnostics;
-using System.ComponentModel;
-using System;
 using System.Net.FtpClient;
-using Veldrid.MetalBindings;
 using System.Net;
 
 namespace Pandora.Network
 {
     public class Client : IDisposable
     {
-        public enum FileType
-        {
-            File = 0,
-            Directory = 1
-        }
-
-        public class ClientFileInfo
-        {
-            public FileType FileType { get; set; } = FileType.File;
-            public string Path { get; set; } = string.Empty;
-            public string Name { get; set; } = string.Empty;
-            public bool Selected { get; set; } = false;
-        }
-
         private TcpClient? m_tcpClient;
         
         private FtpClient? m_ftpClient;
@@ -45,6 +27,7 @@ namespace Pandora.Network
         private bool m_disconnected = false;
         private bool m_disconnectRequested = false;
         private bool m_ftpRady = false;
+        private bool m_ftpDownloading = false;
 
         private string GenerateWord(int length)
         {
@@ -167,7 +150,8 @@ namespace Pandora.Network
                     Credentials = new NetworkCredential(user, pass),
                     Host = host,
                     Port = port,
-                    EncryptionMode = FtpEncryptionMode.None
+                    EncryptionMode = FtpEncryptionMode.None,
+                    EnableThreadSafeDataConnections = false
                 };
 
                 try
@@ -193,7 +177,7 @@ namespace Pandora.Network
 
         public bool CanGetFiles()
         {
-            if (m_ftpClient == null || m_ftpRady == false)
+            if (m_ftpClient == null || m_ftpRady == false || m_disconnectRequested == true)
             {
                 return false;
             }
@@ -202,14 +186,14 @@ namespace Pandora.Network
 
         public ClientFileInfo[]? GetFiles(string path)
         {
-            if (m_ftpClient == null || m_ftpRady == false || m_disconnectRequested)
-            {
-                return null;
-            }
-
             try
             {
                 var files = new List<ClientFileInfo>();
+
+                if (m_ftpClient == null)
+                {
+                    return null;
+                }
 
                 var ftpListing = m_ftpClient.GetListing(path, FtpListOption.AllFiles);
 
@@ -248,6 +232,83 @@ namespace Pandora.Network
                 m_disconnectRequested = true;
                 return null;
             }
+        }
+
+        public void AddFilesToDownloadStore(string remoteRelativePath, string remotePath, string localPath)
+        {
+            if (remotePath.EndsWith("/"))
+            {
+                var files = GetFiles(remotePath);
+                if (files != null)
+                {
+                    foreach (var file in files)
+                    {
+                        if (file.Name.Equals(".."))
+                        {
+                            continue;
+                        }
+                        if (file.FileType == FileType.File)
+                        {
+                            var downloadDetail = new DownloadDetail(remoteRelativePath, file.Path, file.Name, localPath);
+                            DownloadDetailStore.AddDownloadDetail(downloadDetail);
+                        }
+                        else if (file.FileType == FileType.Directory)
+                        {
+                            var downloadDetail = new DownloadDetail(remoteRelativePath, file.Path + file.Name + "/", string.Empty, Path.Combine(localPath, file.Name));
+                            DownloadDetailStore.AddDownloadDetail(downloadDetail);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var position = remotePath.LastIndexOf("/", remoteRelativePath.Length - 1);
+                if (position != -1)
+                {
+                    var remoteFile = remotePath.Substring(position + 1);
+                    remotePath = remotePath.Substring(0, position + 1);
+
+                    //)
+
+                    var downloadDetail = new DownloadDetail(remoteRelativePath, remotePath, remoteFile, localPath);
+                    DownloadDetailStore.AddDownloadDetail(downloadDetail);
+                }
+            }
+        }
+
+        private bool TryDownloadFile(string remotePath, string localPath, Action<float> progress)
+        {
+            if (m_ftpClient == null)
+            {
+                return false;
+            }
+            try
+            {
+                Directory.CreateDirectory(localPath.GetFtpDirectoryName());
+
+                using (var inputStream = m_ftpClient.OpenRead(remotePath))
+                using (var outputStream = new FileStream(localPath, FileMode.Create))
+                {                   
+                    byte[] buffer = new byte[8192];
+
+                    long total = 0;
+                    int bytesRead = inputStream.Read(buffer, 0, buffer.Length);
+                    while (bytesRead > 0)
+                    {
+                        outputStream.Write(buffer, 0, bytesRead);
+                        total += bytesRead;
+                        progress(total / (float)inputStream.Length);
+                        bytesRead = inputStream.Read(buffer, 0, buffer.Length);
+                    }
+
+                    progress(1);
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return true;
         }
 
         private void ProcessResponse(string response)
@@ -342,6 +403,44 @@ namespace Pandora.Network
                     var stream = m_tcpClient.GetStream();
                     while (!m_disconnectRequested)
                     {
+                        if (m_ftpRady == true && m_ftpDownloading == false)
+                        {
+                            var downloadDetails = DownloadDetailStore.GetReadyDownloadDetails();
+                            if (downloadDetails.Length > 0)
+                            {
+                                m_ftpDownloading = true;
+                                var downloadDetail = downloadDetails[0];
+
+                                new Thread(() =>
+                                {
+                                    if (downloadDetail.RemoteFile == string.Empty)
+                                    {
+                                        try
+                                        {
+                                            AddFilesToDownloadStore(downloadDetail.RemoteRelativePath, downloadDetail.RemotePath, downloadDetail.LocalPath);
+                                            Directory.CreateDirectory(downloadDetail.LocalPath);
+                                            downloadDetail.Progress = "100%";
+                                        }
+                                        catch 
+                                        {
+                                            downloadDetail.Progress = $"Error: Failed to get folder.";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (TryDownloadFile(downloadDetail.RemotePath + downloadDetail.RemoteFile, Path.Combine(downloadDetail.LocalPath, downloadDetail.RemoteFile), p =>
+                                        {
+                                            downloadDetail.Progress = $"{(int)(p * 100)}%";
+                                        }) == false)
+                                        {
+                                            downloadDetail.Progress = $"Error: Failed to download.";
+                                        }
+                                    }
+                                    m_ftpDownloading = false;
+
+                                }).Start();
+                            }
+                        }
                         if (stream.DataAvailable)
                         {
                             var resonse = ReadResponse();
@@ -361,6 +460,7 @@ namespace Pandora.Network
 
                 m_disconnected = true;
                 m_ftpRady = false;
+                m_ftpDownloading = false;
 
                 m_ftpClient?.Dispose();
                 m_tcpClient?.Dispose();

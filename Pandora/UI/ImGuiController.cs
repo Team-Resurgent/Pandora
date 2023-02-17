@@ -86,7 +86,7 @@ namespace Pandora
             }, GCHandleType.Pinned);
 
 
-            ImGui.GetIO().Fonts.AddFontFromMemoryTTF(addressFontData, fontData.Length, 15, null, glyphRangeHandle1.AddrOfPinnedObject());
+            ImGui.GetIO().Fonts.AddFontFromMemoryTTF(addressFontData, fontData.Length, 15, null);//, glyphRangeHandle1.AddrOfPinnedObject());
 
             var glyphRangeHandle2 = GCHandle.Alloc(new ushort[] {
                 0x0020, 0x00FF, // Basic Latin + Latin Supplement
