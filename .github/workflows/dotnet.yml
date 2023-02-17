@@ -1,4 +1,4 @@
-name: BuildRepackinator
+name: BuildPandora
 
 on:
   push:
@@ -18,8 +18,8 @@ jobs:
       matrix:
         arch: [x64]
         os_flavor: [win-x64,linux-x64,osx-x64]
-        project: [Repackinator]
-        project_lowercase: [repackinator]
+        project: [Pandora]
+        project_lowercase: [pandora]
         include:
           - os_flavor: win-x64
             archive_ext: zip
@@ -60,7 +60,7 @@ jobs:
         tag_name: latest
         draft: true
         files: |
-          ${{ github.workspace }}/Repackinator.nfo
+          ${{ github.workspace }}/Pandora.nfo
           ${{ github.workspace }}/README.md
           ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }}
     - name: Create Release
@@ -68,6 +68,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          ${{ github.workspace }}/Repackinator.nfo
+          ${{ github.workspace }}/Pandora.nfo
           ${{ github.workspace }}/README.md
           ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }}
