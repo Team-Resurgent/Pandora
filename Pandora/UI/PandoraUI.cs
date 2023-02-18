@@ -1,12 +1,19 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json.Linq;
 using Pandora.Helpers;
 using Pandora.Network;
 using Pandora.UI;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
 using Veldrid;
+using Veldrid.MetalBindings;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
+using Vulkan.Win32;
 
 namespace Pandora
 {
@@ -42,7 +49,10 @@ namespace Pandora
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath() ?? string.Empty;
 
         public string RemoteSelectedFolder { get; set; } = "/";
-        
+
+        [DllImport("dwmapi.dll", PreserveSig = true)]
+        public static extern int DwmSetWindowAttribute(IntPtr hwnd, uint attr, ref int attrValue, int attrSize);
+
         public void Start(string version)
         {
             var admin = Utility.IsAdmin() ? " ADMIN" : string.Empty;
@@ -50,7 +60,14 @@ namespace Pandora
 
             m_controller = new ImGuiController(m_graphicsDevice, m_graphicsDevice.MainSwapchain.Framebuffer.OutputDescription, m_window.Width, m_window.Height);
 
-            UIControls.SetXboxTheme();
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621, 0))
+            {
+                int value = -1;
+                uint DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+                DwmSetWindowAttribute(m_window.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref value, sizeof(int));
+            }
+
+            UIControls.SetTeamResurgentTheme();
 
             m_window.Resized += () =>
             {

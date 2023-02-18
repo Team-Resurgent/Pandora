@@ -108,7 +108,7 @@ namespace Pandora
         {
             _gd = gd;
             _windowWidth = width;
-            _windowHeight = height;
+            _windowHeight = height;            
 
             //NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, ImportResolver);
 
