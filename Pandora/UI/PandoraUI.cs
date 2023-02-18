@@ -210,6 +210,7 @@ namespace Pandora
             {
                 var remotePath = m_remoteContextDialog.RemotePath;
                 var localPath = m_remoteContextDialog.LocalPath;
+                var fileSize = m_remoteContextDialog.FileSize;
 
                 new Thread(() =>
                 {
@@ -217,7 +218,7 @@ namespace Pandora
                     {
                         return;
                     }
-                    m_client.AddFilesToDownloadStore(RemoteSelectedFolder, remotePath, localPath);                                        
+                    m_client.AddFileToDownloadStore(RemoteSelectedFolder, remotePath, localPath, fileSize);                                        
                 }).Start();
             }
 
@@ -402,7 +403,8 @@ namespace Pandora
                             else if (state == UIControls.SelectableState.ShowContext)
                             {
                                 m_remoteContextDialog.RemotePath = clientFileInfo.Path + clientFileInfo.Name + "/";
-                                m_remoteContextDialog.LocalPath = Path.Combine(localSelectedFolder, clientFileInfo.Name); 
+                                m_remoteContextDialog.LocalPath = Path.Combine(localSelectedFolder, clientFileInfo.Name);
+                                m_remoteContextDialog.FileSize = 0;
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
@@ -420,6 +422,7 @@ namespace Pandora
                             {
                                 m_remoteContextDialog.RemotePath = clientFileInfo.Path + clientFileInfo.Name;
                                 m_remoteContextDialog.LocalPath = localSelectedFolder;
+                                m_remoteContextDialog.FileSize = clientFileInfo.Size;
                                 m_remoteContextDialog.ShowdDialog();
                             }
                         }
@@ -520,7 +523,7 @@ namespace Pandora
                 m_client.OnError += OnError;
                 m_client.OnConnecting += OnConnecting;
 
-                if (!m_config.HasFTPDetails)
+                if (!m_config.HasFTPDetails())
                 {
                     m_client.ConnectIRC();
                 }

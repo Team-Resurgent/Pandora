@@ -1,4 +1,6 @@
-﻿namespace Pandora.Network
+﻿using FluentFTP.Helpers;
+
+namespace Pandora.Network
 {
     public class DownloadDetail
     {
@@ -7,6 +9,7 @@
         public string RemotePath { get; set; }
         public string RemoteFile { get; set; }
         public string LocalPath { get; set; }
+        public long FileSize { get; set; }
 
         public string Key
         {
@@ -16,13 +19,14 @@
             }
         }
 
-        public DownloadDetail(string remoteRelativePath, string remotePath, string remoteFile, string localPath)
+        public DownloadDetail(string remoteRelativePath, string remotePath, string remoteFile, string localPath, long fileSize)
         {            
             Progress = string.Empty;
             RemoteRelativePath = remoteRelativePath;
             RemotePath = remotePath;
             RemoteFile = remoteFile;
             LocalPath = localPath;
+            FileSize = fileSize;
         }
     }
 }

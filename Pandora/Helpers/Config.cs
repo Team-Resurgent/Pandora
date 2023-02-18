@@ -14,9 +14,12 @@ namespace Pandora.Helpers
 
         public string FTPPassword { get; set; }
 
-        public bool HasFTPDetails => !string.IsNullOrEmpty(FTPUser) && !string.IsNullOrEmpty(FTPPassword);
+        public string[] EffnetServers { get; set; } = Array.Empty<string>();
 
-        public string[] EffnetServers = Array.Empty<string>();
+        public bool HasFTPDetails()
+        {
+            return !string.IsNullOrEmpty(FTPUser) && !string.IsNullOrEmpty(FTPPassword);
+        }
 
         public Config()
         {
@@ -45,7 +48,9 @@ namespace Pandora.Helpers
                 var result = JsonSerializer.Deserialize<Config>(configJson);
                 return result ?? new Config();
             }
-            return new Config();
+            var config = new Config();
+            SaveConfig(config);
+            return config;
         }
 
         public static Config LoadConfig()

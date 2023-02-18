@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Pandora.Network;
 
 namespace Pandora
 {
@@ -12,7 +13,8 @@ namespace Pandora
 
         public string RemotePath { get; set; } = string.Empty;
         public string LocalPath { get; set; } = string.Empty;
-        
+        public long FileSize { get; set; } = 0;
+
         private bool m_show = false;
 
         public void ShowdDialog()

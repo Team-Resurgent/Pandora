@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Vulkan;
 using Pandora.Helpers;
 using ManagedBass;
+using FluentFTP.Helpers;
 
 namespace Pandora.Network
 {
@@ -140,14 +141,15 @@ namespace Pandora.Network
                     Host = host,
                     Port = port
                 };
+                m_ftpClient.Config.StaleDataCheck = false;
 
                 try
                 {
                     m_ftpClient.Connect();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    OnError?.Invoke(this, "ProcessPrivMsg: Unable to connect to FTP, disconnecting.");
+                    OnError?.Invoke(this, $"ConnectFTP: Unable to connect to FTP, disconnecting '{ex.Message}");
                     m_disconnectRequested = true;
                     return;
                 }
@@ -225,6 +227,7 @@ namespace Pandora.Network
 
                     clientFileInfo.Path = path;
                     clientFileInfo.Name = item.Name;
+                    clientFileInfo.Size = item.Size;
                     files.Add(clientFileInfo);
                 }
 
@@ -243,7 +246,7 @@ namespace Pandora.Network
             }
         }
 
-        public void AddFilesToDownloadStore(string remoteRelativePath, string remotePath, string localPath)
+        public void AddFileToDownloadStore(string remoteRelativePath, string remotePath, string localPath, long fileSize)
         {
             if (remotePath.EndsWith("/"))
             {
@@ -258,12 +261,12 @@ namespace Pandora.Network
                         }
                         if (file.FileType == FileType.File)
                         {
-                            var downloadDetail = new DownloadDetail(remoteRelativePath, file.Path, file.Name, localPath);
+                            var downloadDetail = new DownloadDetail(remoteRelativePath, file.Path, file.Name, localPath, file.Size);
                             DownloadDetailStore.AddDownloadDetail(downloadDetail);
                         }
                         else if (file.FileType == FileType.Directory)
                         {
-                            var downloadDetail = new DownloadDetail(remoteRelativePath, file.Path + file.Name + "/", string.Empty, Path.Combine(localPath, file.Name));
+                            var downloadDetail = new DownloadDetail(remoteRelativePath, file.Path + file.Name + "/", string.Empty, Path.Combine(localPath, file.Name), file.Size);
                             DownloadDetailStore.AddDownloadDetail(downloadDetail);
                         }
                     }
@@ -276,13 +279,13 @@ namespace Pandora.Network
                 {
                     var remoteFile = remotePath.Substring(position + 1);
                     remotePath = remotePath.Substring(0, position + 1);
-                    var downloadDetail = new DownloadDetail(remoteRelativePath, remotePath, remoteFile, localPath);
+                    var downloadDetail = new DownloadDetail(remoteRelativePath, remotePath, remoteFile, localPath, fileSize);
                     DownloadDetailStore.AddDownloadDetail(downloadDetail);
                 }
             }
         }
 
-        private bool TryDownloadFile(string remotePath, string localPath, Action<float> progress)
+        private bool TryDownloadFile(string remotePath, string localPath, long fileSize, Action<float> progress)
         {
             if (m_ftpClient == null)
             {
@@ -290,8 +293,9 @@ namespace Pandora.Network
             }
             try
             {
-                m_ftpClient.DownloadFile(localPath, remotePath, FtpLocalExists.Overwrite, FtpVerify.None, p=> {
-                    progress(Math.Max((float)p.Progress, 0f));
+                m_ftpClient.DownloadFile(localPath, remotePath, FtpLocalExists.Overwrite, FtpVerify.None, p =>
+                {
+                    progress(Math.Max((((float)p.TransferredBytes / fileSize) * 100), 0f));
                 });
 
                 progress(100);
@@ -374,7 +378,7 @@ namespace Pandora.Network
                         {
                             try
                             {
-                                AddFilesToDownloadStore(downloadDetail.RemoteRelativePath, downloadDetail.RemotePath, downloadDetail.LocalPath);
+                                AddFileToDownloadStore(downloadDetail.RemoteRelativePath, downloadDetail.RemotePath, downloadDetail.LocalPath, downloadDetail.FileSize);
                                 Directory.CreateDirectory(downloadDetail.LocalPath);
                                 downloadDetail.Progress = "100%";
                             }
@@ -385,7 +389,7 @@ namespace Pandora.Network
                         }
                         else
                         {
-                            if (TryDownloadFile(downloadDetail.RemotePath + downloadDetail.RemoteFile, Path.Combine(downloadDetail.LocalPath, downloadDetail.RemoteFile), p =>
+                            if (TryDownloadFile(downloadDetail.RemotePath + downloadDetail.RemoteFile, Path.Combine(downloadDetail.LocalPath, downloadDetail.RemoteFile), downloadDetail.FileSize, p =>
                             {
                                 downloadDetail.Progress = $"{(int)p}%";
                             }) == false)

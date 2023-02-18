@@ -11,6 +11,6 @@
         public FileType FileType { get; set; } = FileType.File;
         public string Path { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public bool Selected { get; set; } = false;
+        public long Size { get; set; } = 0;
     }
 }
