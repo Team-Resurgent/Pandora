@@ -15,17 +15,18 @@ Get ready to open that box up nice and wide :)
 
 </div>
 
-			  		[ Program ..................................... Pandora V1.0.0 Beta ]
-					[ Type .............................................. Xbins Manager ]
-					[ Patreon ....................https://www.patreon.com/teamresurgent ]
+				[ Program ..................................... Pandora V1.0.0 Beta ]
+				[ Type .............................................. Xbins Manager ]
+				[ Patreon ....................https://www.patreon.com/teamresurgent ]
 
-					[                          Team Members:                            ]
-					[ EqUiNoX ......................................... Lead Programmer ]
-					[ HoRnEyDvL .............................. Tester / Project Manager ]
-					[ Hazeno ................................................... Tester ]
-					[ Dempsey_86 ............................................... Tester ]
-					[ Natetronn ................................................ Tester ]
-					[ zatchbot ................................. Tester / Village Idiot ]
+				[                          Team Members:                            ]
+				[ EqUiNoX ......................................... Lead Programmer ]
+				[ HoRnEyDvL .............................. Tester / Project Manager ]
+				[ Hazeno ................................................... Tester ]
+				[ Dempsey_86 ............................................... Tester ]
+				[ Natetronn ................................................ Tester ]
+				[ zatchbot ................................. Tester / Village Idiot ]
+				[ xXBeefyDjXx .............................................. Tester ]				
 
 ## System Requirements
 ### Minimum
@@ -64,5 +65,5 @@ Get ready to open that box up nice and wide :)
 * Thanks to the team at [Xbox-Scene Discord](https://discord.gg/VcdSfajQGK) - Haguero, AmyGrrl, CrunchBite, Derf, Risk, Sn34K, ngrst183
 * Huge Shout-out to [Kekule](https://github.com/Kekule-OXC), [Ryzee119](https://github.com/Ryzee119), & [ChimericSystems](https://chimericsystems.com/) for all the time & effort they have put towards reverse engineering & creation of new hardware mods.
 * To all the people behind projects such as [xemu](https://github.com/mborgerson/xemu) and [Insignia](https://insignia.live/). Keep up the amazing work! We can't wait for your final product releases.
-* Greetz to the following scene people, in no particular order - Milenko, Iriez, Mattie, ODB718, ILTB, HoZy, IceKiller, Rowdy360, Lantus, Kl0wn, nghtshd, Redline99, The_Mad_M, Und3ad, HermesConrad, Rocky5, xbox7887, tuxuser, Masonly, manderson, InsaneNutter, IDC, Fyb3roptik, Bucko, Aut0botKilla, headph0ne,Xer0 449, hazardous774, rusjr1908, Octal450, Gunz4Hire, Dai, bluemeanie23, T3, ToniHC, Emaxx, Incursion64, empyreal96, Fredr1kh, Natetronn, braxtron, Dempsey_86
+* Greetz to the following scene people, in no particular order - Milenko, Iriez, Mattie, ODB718, ILTB, HoZy, IceKiller, Rowdy360, Lantus, Kl0wn, nghtshd, Redline99, The_Mad_M, Und3ad, HermesConrad, Rocky5, xbox7887, tuxuser, Masonly, manderson, InsaneNutter, IDC, Fyb3roptik, Bucko, Aut0botKilla, headph0ne,Xer0 449, hazardous774, rusjr1908, Octal450, Gunz4Hire, Dai, bluemeanie23, T3, ToniHC, Emaxx, Incursion64, empyreal96, Fredr1kh, Natetronn, braxtron, Dempsey_86, xXBeefyDjXx
 <!--* I'm sure there is someone else that belongs here too ;)-->
