@@ -20,12 +20,14 @@ namespace Pandora.Network
         public delegate void DisconnectedHandler(object sender);
         public delegate void MessageSentHandler(object sender, string message);
         public delegate void MessageRecievedHandler(object sender, string message);
+        public delegate void ConnectingHandler(object sender, string message);
 
         public event ErrorEventHandler? OnError;
         public event ConnectedHandler? OnConnected;
         public event DisconnectedHandler? OnDisconnected;
         public event MessageSentHandler? OnMessageSent;
         public event MessageRecievedHandler? OnMessageRecieved;
+        public event ConnectingHandler? OnConnecting;
 
         private bool m_disposed = false;
         private bool m_disconnected = false;
@@ -398,7 +400,7 @@ namespace Pandora.Network
             }
         }
 
-        public bool ConnectFTP()
+        public void ConnectFTP()
         {
             var config = Config.LoadConfig();
 
@@ -410,6 +412,7 @@ namespace Pandora.Network
 
                 try
                 {
+                    OnConnecting?.Invoke(this, $"Tring to connect to '{config.FTPHost}'.");
                     ConnectFTP(config.FTPHost, config.FTPPort, config.FTPUser, config.FTPPassword);
                     while (!m_disconnectRequested)
                     {
@@ -433,71 +436,73 @@ namespace Pandora.Network
                 OnDisconnected?.Invoke(this);
 
             }).Start();
-
-            return true;
         }
 
-        public bool Connect(string server, int port)
+        public void ConnectIRC()
         {
-            var config = Config.LoadConfig();
-
-            if (!config.HasFTPDetails)
-            {
-                var tcpClient = new TcpClient();
-                var result = tcpClient.BeginConnect(server, port, null, null);
-                var waitHandle = result.AsyncWaitHandle;
-                try
-                {
-                    if (!result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(30), false))
-                    {
-                        tcpClient.Close();
-                        return false;
-                    }
-                    tcpClient.EndConnect(result);
-                }
-                catch
-                {
-                    return false;
-                }
-                finally
-                {
-                    waitHandle.Close();
-                }
-
-                m_tcpClient = tcpClient;
-            }
-            else
-            {
-                m_tcpClient = null;
-            }
-
             new Thread(() =>
             {
-                if (!config.HasFTPDetails)
-                {
-                    SendMessage($"NICK {GenerateWord(10)}");
-                    SendMessage($"USER {GenerateWord(10)} . . {GenerateWord(10)}");
-                }
-
                 m_disconnectRequested = false;
                 m_disconnected = false;
                 m_ftpRady = false;
 
+                var config = Config.LoadConfig();
+
+                var connected = false;
+                var servers = config.EffnetServers;
+                for (int i = 0; i < servers.Length; i++)
+                {
+                    if (m_disconnectRequested == true)
+                    {
+                        break;
+                    }
+                    OnConnecting?.Invoke(this, $"Tring to connect to '{servers[i]}'.");
+                    var tcpClient = new TcpClient();
+                    var result = tcpClient.BeginConnect(servers[i], 6667, null, null);
+                    var waitHandle = result.AsyncWaitHandle;
+                    try
+                    {
+                        if (!result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(30), false))
+                        {
+                            tcpClient.Close();
+                            tcpClient.Dispose();
+                        }
+                        else
+                        {
+                            tcpClient.EndConnect(result);
+                            m_tcpClient = tcpClient;
+                            connected = true;
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        // do nothing
+                    }
+                    finally
+                    {
+                        waitHandle.Close();
+                    }
+                }
+
+                if (!connected || m_disconnectRequested == true || m_tcpClient == null)
+                {
+                    m_disconnected = true;
+                    OnDisconnected?.Invoke(this);
+                    return;
+                }
+
+                SendMessage($"NICK {GenerateWord(10)}");
+                SendMessage($"USER {GenerateWord(10)} . . {GenerateWord(10)}");
+
                 try
                 {
-                    NetworkStream? stream = null;
-                    if (!config.HasFTPDetails)
-                    {
-                        stream = m_tcpClient?.GetStream();
-                    }
-                    else
-                    {
-                        ConnectFTP(config.FTPHost, config.FTPPort, config.FTPUser, config.FTPPassword);
-                    }
+                    var stream = m_tcpClient.GetStream();
+    
                     while (!m_disconnectRequested)
                     {
                         ProcessDownloads();
-                        if (!config.HasFTPDetails && stream != null && stream.DataAvailable)
+                        if (stream.DataAvailable)
                         {
                             var resonse = ReadResponse();
                             ProcessResponse(resonse);
@@ -526,13 +531,15 @@ namespace Pandora.Network
                 OnDisconnected?.Invoke(this);
 
             }).Start();
-
-            return true;
         }
 
         public void Disconnect()
         {
             m_disconnectRequested = true;
+        }
+
+        public void WaitDisconenct()
+        {
             while (!m_disconnected)
             {
                 Thread.Sleep(100);
@@ -552,6 +559,7 @@ namespace Pandora.Network
                 if (disposing)
                 {
                     Disconnect();
+                    WaitDisconenct();
                 }
                 m_disposed = true;
             }

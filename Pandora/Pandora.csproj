@@ -19,12 +19,14 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\dialup.mp3" />
+	  <None Remove="Resources\disconnect.mp3" />
 	  <None Remove="Resources\TeamResurgent.jpg" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\ARIALUNI.TTF" />
 		<EmbeddedResource Include="Resources\dialup.mp3" />
+		<EmbeddedResource Include="Resources\disconnect.mp3" />
 		<EmbeddedResource Include="Resources\TeamResurgent.jpg" />
 		<EmbeddedResource Include="Shaders/GLSL/imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
 		<EmbeddedResource Include="Shaders/GLSL/imgui-frag.glsl" LogicalName="imgui-frag.glsl" />

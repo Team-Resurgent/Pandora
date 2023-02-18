@@ -4,31 +4,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static Pandora.RemoteContextDialog;
 
 namespace Pandora.UI
 {
     public class SplashDialog
     {
         private bool m_show = false;
+        private bool m_requestedClose = false;
         private IntPtr m_splashTexture;
+        private DateTime m_started;
 
         public void ShowdDialog(IntPtr splashTexture)
         {
-            var timer = new System.Timers.Timer(3000);
-            timer.Elapsed += Timer_Elapsed;
-            timer.AutoReset = true;
-            timer.Enabled = true;
-
+            m_started = DateTime.Now;
             m_splashTexture = splashTexture;
             m_show = true;
-        }
-
-        private void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-        {
-            ImGui.CloseCurrentPopup();
         }
 
         public bool Render()
@@ -36,16 +26,29 @@ namespace Pandora.UI
             if (m_show)
             {
                 m_show = false;
-                ImGui.OpenPopup("splashDialog");
+                ImGui.OpenPopup("##splashDialog");
             }
 
             bool open = true;
-            if (!ImGui.BeginPopupModal("splashDialog", ref open, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
+            if (!ImGui.BeginPopupModal("##splashDialog", ref open, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
             {
                 return false;
             }
 
-            ImGui.Image(m_splashTexture, new Vector2(640, 480));
+            var fade = 1.0f;
+            var time = DateTime.Now - m_started;
+            if (time.TotalMilliseconds > 1000)
+            {
+                fade = (float)Math.Max((1000 - (time.TotalMilliseconds - 1000)) / 1000, 0);
+            }
+
+            ImGui.Image(m_splashTexture, new Vector2(640, 480), Vector2.Zero, Vector2.One, new Vector4(1.0f, 1.0f, 1.0f, fade));
+
+            if (fade == 0 && m_requestedClose == false)
+            {
+                m_requestedClose = true;
+                ImGui.CloseCurrentPopup();
+            }
 
             return false;
         }

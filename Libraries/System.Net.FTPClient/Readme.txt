@@ -1,1 +1,0 @@
-https://github.com/kendallb/System.Net.FtpClient.git

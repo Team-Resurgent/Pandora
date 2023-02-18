@@ -46,6 +46,7 @@ namespace Pandora
         private bool m_busy = false;
         private bool m_showSplash = true;
         private int m_dialupHandle;
+        private int m_disconnectHandle;
         private IntPtr m_splashTexture;
 
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath() ?? string.Empty;
@@ -92,6 +93,8 @@ namespace Pandora
             Bass.Init();
             var dialupData = ResourceLoader.GetEmbeddedResourceBytes("dialup.mp3", typeof(PandoraUI).Assembly);
             m_dialupHandle = Bass.CreateStream(dialupData, 0, dialupData.Length, BassFlags.Default);
+            var disconnectData = ResourceLoader.GetEmbeddedResourceBytes("disconnect.mp3", typeof(PandoraUI).Assembly);
+            m_disconnectHandle = Bass.CreateStream(disconnectData, 0, disconnectData.Length, BassFlags.Default);
 
             m_window.Resized += () =>
             {
@@ -496,16 +499,12 @@ namespace Pandora
             {
                 if (ImGui.Button("Disconnect", new Vector2(100, 30)))
                 {
-                    Bass.ChannelStop(m_dialupHandle);
-
                     m_client?.Dispose();
                     m_client = null;
                 }
             }
             else if (ImGui.Button("Connect", new Vector2(100, 30)))
             {
-                Bass.ChannelPlay(m_dialupHandle);
-
                 m_logDetails.Clear();
                 m_logDetailsChanged = true;
 
@@ -519,31 +518,16 @@ namespace Pandora
                 m_client.OnMessageSent += OnMessageSent;
                 m_client.OnMessageRecieved += OnMessageRecieved;
                 m_client.OnError += OnError;
+                m_client.OnConnecting += OnConnecting;
 
-                new Thread(() =>
+                if (!m_config.HasFTPDetails)
                 {
-                    if (!m_config.HasFTPDetails)
-                    {
-                        var host = "irc.choopa.net";
-                        LogMessage("Connecting...", $"Trying to connect to host '{host}'.");
-                        var connected = m_client.Connect(host, 6667);
-                        if (!connected)
-                        {
-                            Debug.Print("retry sever");
-                        }
-                    }
-                    else
-                    {
-                        LogMessage("Connecting...", $"Trying to connect to host '{m_config.FTPHost}'.");
-                        var connected = m_client.ConnectFTP();
-                        if (!connected)
-                        {
-                            Debug.Print("retry sever");
-                        }
-                    }
-
-
-                }).Start();                
+                    m_client.ConnectIRC();
+                }
+                else
+                {
+                    m_client.ConnectFTP();
+                }             
             }
 
             ImGui.SameLine();
@@ -601,6 +585,13 @@ namespace Pandora
             ImGui.End();
         }
 
+        private void OnConnecting(object sender, string message)
+        {
+            Bass.ChannelStop(m_disconnectHandle);
+            Bass.ChannelPlay(m_dialupHandle);
+            LogMessage("Connecting...", message);
+        }
+
         private void OnError(object sender, string error)
         {
             LogMessage("Error", error);
@@ -618,6 +609,8 @@ namespace Pandora
 
         private void OnDisconnected(object sender)
         {
+            Bass.ChannelStop(m_dialupHandle);
+            Bass.ChannelPlay(m_disconnectHandle);
             LogMessage("Disconnected", "Bye!");
             m_client?.Dispose();
             m_client = null;

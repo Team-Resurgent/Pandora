@@ -14,7 +14,9 @@ namespace Pandora.Helpers
 
         public string FTPPassword { get; set; }
 
-        public bool  HasFTPDetails => !string.IsNullOrEmpty(FTPUser) && !string.IsNullOrEmpty(FTPPassword);
+        public bool HasFTPDetails => !string.IsNullOrEmpty(FTPUser) && !string.IsNullOrEmpty(FTPPassword);
+
+        public string[] EffnetServers = Array.Empty<string>();
 
         public Config()
         {
@@ -22,22 +24,18 @@ namespace Pandora.Helpers
             FTPPort = 21;
             FTPUser = string.Empty;
             FTPPassword = string.Empty;
+            EffnetServers = new string[] {
+                "irc.servercentral.net",
+                "irc.prison.net",
+                "irc.underworld.no",
+                "efnet.port80.se",
+                "efnet.deic.eu",
+                "irc.efnet.nl",
+                "irc.swepipe.se",
+                "irc.efnet.fr",
+                "irc.choopa.net", 
+            };
         }
-
-//irc.mzima.net
-//irc.servercentral.net
-//irc.colosolutions.net
-//irc.Prison.NET
-//irc.underworld.no
-//efnet.port80.se
-//irc.homelien.no
-//irc.du.se
-//irc.choopa.net
-//efnet.deic.eu
-//irc.efnet.nl
-//irc.swepipe.se
-//efnet.portlane.se
-//irc.efnet.fr
 
         public static Config LoadConfig(string path)
         {
