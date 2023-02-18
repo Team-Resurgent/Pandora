@@ -15,17 +15,17 @@ Get ready to open that box up nice and wide :)
 
 </div>
 
-					[ Program ..................................... Pandora V1.0.0 Beta ]
-					[ Type .............................................. Xbins Manager ]
-					[ Patreon ....................https://www.patreon.com/teamresurgent ]
+				[ Program ..................................... Pandora V1.0.0 Beta ]
+				[ Type .............................................. Xbins Manager ]
+				[ Patreon ....................https://www.patreon.com/teamresurgent ]
 
-					[                          Team Members:                            ]
-					[ EqUiNoX ......................................... Lead Programmer ]
-					[ HoRnEyDvL .............................. Tester / Project Manager ]
-					[ Hazeno ................................................... Tester ]
-					[ Dempsey_86 ............................................... Tester ]
-					[ Natetronn ................................................ Tester ]
-					[ zatchbot ................................. Tester / Village Idiot ]
+				[                          Team Members:                            ]
+				[ EqUiNoX ......................................... Lead Programmer ]
+				[ HoRnEyDvL .............................. Tester / Project Manager ]
+				[ Hazeno ................................................... Tester ]
+				[ Dempsey_86 ............................................... Tester ]
+				[ Natetronn ................................................ Tester ]
+				[ zatchbot ................................. Tester / Village Idiot ]
 
 ## System Requirements
 ### Minimum
