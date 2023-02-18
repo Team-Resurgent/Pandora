@@ -38,8 +38,8 @@ namespace Pandora.UI
             colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.60f, 0.24f, 0.60f, 1.00f);
             colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.60f, 0.24f, 0.60f, 1.00f);
             colors[(int)ImGuiCol.Separator] = new Vector4(1.00f, 1.00f, 1.00f, 0.25f);
-            colors[(int)ImGuiCol.SeparatorHovered] = new Vector4(0.13f, 0.87f, 0.16f, 0.78f);
-            colors[(int)ImGuiCol.SeparatorActive] = new Vector4(0.25f, 0.75f, 0.10f, 1.00f);
+            colors[(int)ImGuiCol.SeparatorHovered] = new Vector4(0.87f, 0.16f, 0.87f, 0.78f);
+            colors[(int)ImGuiCol.SeparatorActive] = new Vector4(0.75f, 0.25f, 0.75f, 1.00f);
             colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.47f, 0.83f, 0.49f, 0.04f);
             colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.28f, 0.71f, 0.25f, 0.78f);
             colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.28f, 0.71f, 0.25f, 1.00f);

@@ -1,25 +1,22 @@
 ﻿using ImGuiNET;
-using Newtonsoft.Json.Linq;
+using ManagedBass;
 using Pandora.Helpers;
 using Pandora.Network;
 using Pandora.UI;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using Veldrid;
-using Veldrid.MetalBindings;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using Vulkan.Win32;
+using Vortice.DXGI;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Memory;
 
 namespace Pandora
 {
-    //https://stackoverflow.com/questions/74900568/how-to-change-the-background-color-of-the-title-bar-color-c-sdl2
-    //https://github.com/lite-xl/lite-xl/pull/514/commits/42aeaf682b68b0f70b019466eee20e417aeb7802
-
     public class PandoraUI 
     {
         private class LogDetail
@@ -39,12 +36,17 @@ namespace Pandora
         private CommandList? m_commandList;
         private ImGuiController? m_controller;
         private RemoteContextDialog m_remoteContextDialog = new();
+        private SplashDialog m_splashDialog = new();
         private Client? m_client;
         private ClientFileInfo[]? m_cachedRemoteFileInfo;
+        private Config m_config = new();
 
         private List<LogDetail> m_logDetails = new();
         private bool m_logDetailsChanged = false; 
         private bool m_busy = false;
+        private bool m_showSplash = true;
+        private int m_dialupHandle;
+        private IntPtr m_splashTexture;
 
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath() ?? string.Empty;
 
@@ -53,12 +55,30 @@ namespace Pandora
         [DllImport("dwmapi.dll", PreserveSig = true)]
         public static extern int DwmSetWindowAttribute(IntPtr hwnd, uint attr, ref int attrValue, int attrSize);
 
+        private IntPtr CreateSplashTexture()
+        {
+            if (m_graphicsDevice == null || m_controller == null)
+            {
+                return IntPtr.Zero;
+            }
+
+            var splashBytes = ResourceLoader.GetEmbeddedResourceBytes("TeamResurgent.jpg", typeof(PandoraUI).Assembly);
+            using var image = Image.Load<Bgra32>(splashBytes);
+            Texture texure = m_graphicsDevice.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)image.Width, (uint)image.Height, 1, 1, PixelFormat.B8_G8_R8_A8_UNorm, TextureUsage.Sampled));
+            var pixelArray = new Bgra32[image.Width * image.Height];
+            image.CopyPixelDataTo(pixelArray);
+            m_graphicsDevice.UpdateTexture(texure, MemoryMarshal.AsBytes<Bgra32>(pixelArray).ToArray(), 0, 0, 0, (uint)image.Width, (uint)image.Height, 1, 0, 0);
+            return m_controller.GetOrCreateImGuiBinding(m_graphicsDevice.ResourceFactory, texure);
+        }
+
         public void Start(string version)
         {
             var admin = Utility.IsAdmin() ? " ADMIN" : string.Empty;
             VeldridStartup.CreateWindowAndGraphicsDevice(new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, $"Pandora - {version}{admin}"), new GraphicsDeviceOptions(true, null, true, ResourceBindingModel.Improved, true, true), VeldridStartup.GetPlatformDefaultBackend(), out m_window, out m_graphicsDevice);
 
             m_controller = new ImGuiController(m_graphicsDevice, m_graphicsDevice.MainSwapchain.Framebuffer.OutputDescription, m_window.Width, m_window.Height);
+
+            m_splashTexture = CreateSplashTexture();
 
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621, 0))
             {
@@ -69,6 +89,10 @@ namespace Pandora
 
             UIControls.SetTeamResurgentTheme();
 
+            Bass.Init();
+            var dialupData = ResourceLoader.GetEmbeddedResourceBytes("dialup.mp3", typeof(PandoraUI).Assembly);
+            m_dialupHandle = Bass.CreateStream(dialupData, 0, dialupData.Length, BassFlags.Default);
+
             m_window.Resized += () =>
             {
                 m_graphicsDevice.MainSwapchain.Resize((uint)m_window.Width, (uint)m_window.Height);
@@ -76,6 +100,8 @@ namespace Pandora
             };
 
             m_commandList = m_graphicsDevice.ResourceFactory.CreateCommandList();
+
+            m_config = Config.LoadConfig();
 
             while (m_window.Exists)
             {
@@ -96,6 +122,9 @@ namespace Pandora
                 m_graphicsDevice.SubmitCommands(m_commandList);
                 m_graphicsDevice.SwapBuffers(m_graphicsDevice.MainSwapchain);
             }
+
+            Bass.StreamFree(m_dialupHandle);
+            Bass.Free();
 
             m_graphicsDevice.WaitForIdle();
             m_controller.Dispose();
@@ -187,6 +216,14 @@ namespace Pandora
                     }
                     m_client.AddFilesToDownloadStore(RemoteSelectedFolder, remotePath, localPath);                                        
                 }).Start();
+            }
+
+            m_splashDialog.Render();
+
+            if (m_showSplash && m_splashTexture != IntPtr.Zero)
+            {
+                m_showSplash = false;
+                m_splashDialog.ShowdDialog(m_splashTexture);
             }
 
             ImGui.Begin("Main", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
@@ -459,12 +496,16 @@ namespace Pandora
             {
                 if (ImGui.Button("Disconnect", new Vector2(100, 30)))
                 {
+                    Bass.ChannelStop(m_dialupHandle);
+
                     m_client?.Dispose();
                     m_client = null;
                 }
             }
             else if (ImGui.Button("Connect", new Vector2(100, 30)))
             {
+                Bass.ChannelPlay(m_dialupHandle);
+
                 m_logDetails.Clear();
                 m_logDetailsChanged = true;
 
@@ -481,15 +522,27 @@ namespace Pandora
 
                 new Thread(() =>
                 {
-                    var host = "irc.choopa.net";
-
-                    LogMessage("Connecting...", $"Trying to connect to host '{host}'.");
-
-                    var connected = m_client.Connect(host, 6667);
-                    if (!connected)
+                    if (!m_config.HasFTPDetails)
                     {
-                        Debug.Print("retry sever");
+                        var host = "irc.choopa.net";
+                        LogMessage("Connecting...", $"Trying to connect to host '{host}'.");
+                        var connected = m_client.Connect(host, 6667);
+                        if (!connected)
+                        {
+                            Debug.Print("retry sever");
+                        }
                     }
+                    else
+                    {
+                        LogMessage("Connecting...", $"Trying to connect to host '{m_config.FTPHost}'.");
+                        var connected = m_client.ConnectFTP();
+                        if (!connected)
+                        {
+                            Debug.Print("retry sever");
+                        }
+                    }
+
+
                 }).Start();                
             }
 
@@ -513,6 +566,37 @@ namespace Pandora
             {
                 DownloadDetailStore.RetryDownloadDeatails();
             }
+
+            ImGui.SameLine();
+
+            ImGui.SetCursorPosX(m_window.Width - 108);
+
+            if (ImGui.Button("Visit Patreon", new Vector2(100, 30)))
+            {
+                var link = "https://www.patreon.com/teamresurgent";
+                try
+                {
+                    if (OperatingSystem.IsWindows())
+                    {
+                        Process.Start("cmd", "/C start" + " " + link);
+                    }
+                    else if (OperatingSystem.IsLinux())
+                    {
+                        Process.Start("xdg-open", link);
+                    }
+                    else if (OperatingSystem.IsMacOS())
+                    {
+                        Process.Start("open", link);
+                    }
+                }
+                catch
+                {
+                    // do nothing
+                }
+            }
+
+            ImGui.SetCursorPos(new Vector2(m_window.Width - 248, m_window.Height - 32));
+            ImGui.Text("Coded by EqUiNoX");
 
             ImGui.End();
         }

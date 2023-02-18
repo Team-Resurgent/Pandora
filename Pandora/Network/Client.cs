@@ -3,6 +3,9 @@ using System.Text;
 using FluentFTP;
 using System.Net;
 using System.Diagnostics;
+using Vulkan;
+using Pandora.Helpers;
+using ManagedBass;
 
 namespace Pandora.Network
 {
@@ -121,29 +124,12 @@ namespace Pandora.Network
             {
                 OnError?.Invoke(this, $"ReadResponse: Exception occured, disconnecting. '{ex.Message}'.");
                 m_disconnectRequested = true;
-                return string.Empty; 
+                return string.Empty;
             }
-}
+        }
 
-        private void ProcessPrivMsg(string argument)
+        private void ConnectFTP(string host, int port, string user, string pass)
         {
-            if (!argument.Contains("FTP ADDRESS"))
-            {
-                return;
-            }
-            var parts = argument.Split('', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (parts.Length != 10)
-            {
-                return;
-            }
-            var host = parts[1];
-            if (!int.TryParse(parts[3], out var port))
-            {
-                return;
-            }
-            var user = parts[5];
-            var pass = parts[7];
-
             try
             {
                 m_ftpClient = new FtpClient
@@ -172,6 +158,28 @@ namespace Pandora.Network
                 OnError?.Invoke(this, $"ProcessPrivMsg: Exception occured, disconnecting. '{ex.Message}'.");
                 m_disconnectRequested = true;
             }
+        }
+
+        private void ProcessPrivMsg(string argument)
+        {
+            if (!argument.Contains("FTP ADDRESS"))
+            {
+                return;
+            }
+            var parts = argument.Split('', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length != 10)
+            {
+                return;
+            }
+            var host = parts[1];
+            if (!int.TryParse(parts[3], out var port))
+            {
+                return;
+            }
+            var user = parts[5];
+            var pass = parts[7];
+
+            ConnectFTP(host, port, user, pass);
         }
 
         public bool CanGetFiles()
@@ -348,34 +356,128 @@ namespace Pandora.Network
             }
         }
 
-        public bool Connect(string server, int port)
+        private void ProcessDownloads()
         {
-            var tcpClient = new TcpClient();
-            var result = tcpClient.BeginConnect(server, port, null, null);
-            var waitHandle = result.AsyncWaitHandle;
-            try
+            if (m_ftpRady == true && m_ftpDownloading == false)
             {
-                if (!result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(30), false))
+                var downloadDetails = DownloadDetailStore.GetReadyDownloadDetails();
+                if (downloadDetails.Length > 0)
                 {
-                    tcpClient.Close();
-                    return false;
-                }
-                tcpClient.EndConnect(result);
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                waitHandle.Close();
-            }
+                    m_ftpDownloading = true;
+                    var downloadDetail = downloadDetails[0];
 
-            m_tcpClient = tcpClient;
+                    new Thread(() =>
+                    {
+                        if (downloadDetail.RemoteFile == string.Empty)
+                        {
+                            try
+                            {
+                                AddFilesToDownloadStore(downloadDetail.RemoteRelativePath, downloadDetail.RemotePath, downloadDetail.LocalPath);
+                                Directory.CreateDirectory(downloadDetail.LocalPath);
+                                downloadDetail.Progress = "100%";
+                            }
+                            catch
+                            {
+                                downloadDetail.Progress = $"Error: Failed to get folder.";
+                            }
+                        }
+                        else
+                        {
+                            if (TryDownloadFile(downloadDetail.RemotePath + downloadDetail.RemoteFile, Path.Combine(downloadDetail.LocalPath, downloadDetail.RemoteFile), p =>
+                            {
+                                downloadDetail.Progress = $"{(int)p}%";
+                            }) == false)
+                            {
+                                downloadDetail.Progress = $"Error: Failed to download.";
+                            }
+                        }
+                        m_ftpDownloading = false;
+
+                    }).Start();
+                }
+            }
+        }
+
+        public bool ConnectFTP()
+        {
+            var config = Config.LoadConfig();
+
             new Thread(() =>
             {
-                SendMessage($"NICK {GenerateWord(10)}");
-                SendMessage($"USER {GenerateWord(10)} . . {GenerateWord(10)}");
+                m_disconnectRequested = false;
+                m_disconnected = false;
+                m_ftpRady = false;
+
+                try
+                {
+                    ConnectFTP(config.FTPHost, config.FTPPort, config.FTPUser, config.FTPPassword);
+                    while (!m_disconnectRequested)
+                    {
+                        ProcessDownloads();
+                        Thread.Sleep(100);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnError?.Invoke(this, $"Disconnecting as exception occured '{ex.Message}'.");
+                }
+
+                m_disconnected = true;
+                m_ftpRady = false;
+                m_ftpDownloading = false;
+
+                m_ftpClient?.Disconnect();
+
+                m_ftpClient?.Dispose();
+
+                OnDisconnected?.Invoke(this);
+
+            }).Start();
+
+            return true;
+        }
+
+        public bool Connect(string server, int port)
+        {
+            var config = Config.LoadConfig();
+
+            if (!config.HasFTPDetails)
+            {
+                var tcpClient = new TcpClient();
+                var result = tcpClient.BeginConnect(server, port, null, null);
+                var waitHandle = result.AsyncWaitHandle;
+                try
+                {
+                    if (!result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(30), false))
+                    {
+                        tcpClient.Close();
+                        return false;
+                    }
+                    tcpClient.EndConnect(result);
+                }
+                catch
+                {
+                    return false;
+                }
+                finally
+                {
+                    waitHandle.Close();
+                }
+
+                m_tcpClient = tcpClient;
+            }
+            else
+            {
+                m_tcpClient = null;
+            }
+
+            new Thread(() =>
+            {
+                if (!config.HasFTPDetails)
+                {
+                    SendMessage($"NICK {GenerateWord(10)}");
+                    SendMessage($"USER {GenerateWord(10)} . . {GenerateWord(10)}");
+                }
 
                 m_disconnectRequested = false;
                 m_disconnected = false;
@@ -383,48 +485,19 @@ namespace Pandora.Network
 
                 try
                 {
-                    var stream = m_tcpClient.GetStream();
+                    NetworkStream? stream = null;
+                    if (!config.HasFTPDetails)
+                    {
+                        stream = m_tcpClient?.GetStream();
+                    }
+                    else
+                    {
+                        ConnectFTP(config.FTPHost, config.FTPPort, config.FTPUser, config.FTPPassword);
+                    }
                     while (!m_disconnectRequested)
                     {
-                        if (m_ftpRady == true && m_ftpDownloading == false)
-                        {
-                            var downloadDetails = DownloadDetailStore.GetReadyDownloadDetails();
-                            if (downloadDetails.Length > 0)
-                            {
-                                m_ftpDownloading = true;
-                                var downloadDetail = downloadDetails[0];
-
-                                new Thread(() =>
-                                {
-                                    if (downloadDetail.RemoteFile == string.Empty)
-                                    {
-                                        try
-                                        {
-                                            AddFilesToDownloadStore(downloadDetail.RemoteRelativePath, downloadDetail.RemotePath, downloadDetail.LocalPath);
-                                            Directory.CreateDirectory(downloadDetail.LocalPath);
-                                            downloadDetail.Progress = "100%";
-                                        }
-                                        catch 
-                                        {
-                                            downloadDetail.Progress = $"Error: Failed to get folder.";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (TryDownloadFile(downloadDetail.RemotePath + downloadDetail.RemoteFile, Path.Combine(downloadDetail.LocalPath, downloadDetail.RemoteFile), p =>
-                                        {
-                                            downloadDetail.Progress = $"{(int)p}%";
-                                        }) == false)
-                                        {
-                                            downloadDetail.Progress = $"Error: Failed to download.";
-                                        }
-                                    }
-                                    m_ftpDownloading = false;
-
-                                }).Start();
-                            }
-                        }
-                        if (stream.DataAvailable)
+                        ProcessDownloads();
+                        if (!config.HasFTPDetails && stream != null && stream.DataAvailable)
                         {
                             var resonse = ReadResponse();
                             ProcessResponse(resonse);
