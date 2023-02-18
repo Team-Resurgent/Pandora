@@ -445,6 +445,8 @@ namespace Pandora.Network
                 m_ftpRady = false;
                 m_ftpDownloading = false;
 
+                m_ftpClient?.Disconnect();
+
                 m_ftpClient?.Dispose();
                 m_tcpClient?.Dispose();
 
