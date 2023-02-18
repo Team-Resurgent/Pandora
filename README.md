@@ -53,7 +53,7 @@ Get ready to open that box up nice and wide :)
 <div align="center">
 
 ***need to add readmeStuff folder***
-<!--![GUI](https://github.com/Team-Resurgent/Pandora/blob/main/readmeStuff/gui.png?raw=true)</div>-->
+<!--![GUI](https://github.com/Team-Resurgent/Pandora/blob/main/readmeStuff/gui.png?raw=true)--></div>
 
 * Connect to Xbins so easy, my grandma could do it.
 
