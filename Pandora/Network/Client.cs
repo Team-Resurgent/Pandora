@@ -1,7 +1,8 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using System.Net.FtpClient;
+using FluentFTP;
 using System.Net;
+using System.Diagnostics;
 
 namespace Pandora.Network
 {
@@ -149,9 +150,7 @@ namespace Pandora.Network
                 {
                     Credentials = new NetworkCredential(user, pass),
                     Host = host,
-                    Port = port,
-                    EncryptionMode = FtpEncryptionMode.None,
-                    EnableThreadSafeDataConnections = false
+                    Port = port
                 };
 
                 try
@@ -201,11 +200,11 @@ namespace Pandora.Network
                 {
                     var clientFileInfo = new ClientFileInfo();
 
-                    if (item.Type == FtpFileSystemObjectType.File)
+                    if (item.Type == FtpObjectType.File)
                     {
                         clientFileInfo.FileType = FileType.File;
                     }
-                    else if (item.Type == FtpFileSystemObjectType.Directory)
+                    else if (item.Type == FtpObjectType.Directory)
                     {
                         clientFileInfo.FileType = FileType.Directory;
                     }
@@ -267,9 +266,6 @@ namespace Pandora.Network
                 {
                     var remoteFile = remotePath.Substring(position + 1);
                     remotePath = remotePath.Substring(0, position + 1);
-
-                    //)
-
                     var downloadDetail = new DownloadDetail(remoteRelativePath, remotePath, remoteFile, localPath);
                     DownloadDetailStore.AddDownloadDetail(downloadDetail);
                 }
@@ -284,28 +280,15 @@ namespace Pandora.Network
             }
             try
             {
-                Directory.CreateDirectory(localPath.GetFtpDirectoryName());
+                m_ftpClient.DownloadFile(localPath, remotePath, FtpLocalExists.Overwrite, FtpVerify.None, p=> {
+                    progress(Math.Max((float)p.Progress, 0f));
+                });
 
-                using (var inputStream = m_ftpClient.OpenRead(remotePath))
-                using (var outputStream = new FileStream(localPath, FileMode.Create))
-                {                   
-                    byte[] buffer = new byte[8192];
-
-                    long total = 0;
-                    int bytesRead = inputStream.Read(buffer, 0, buffer.Length);
-                    while (bytesRead > 0)
-                    {
-                        outputStream.Write(buffer, 0, bytesRead);
-                        total += bytesRead;
-                        progress(total / (float)inputStream.Length);
-                        bytesRead = inputStream.Read(buffer, 0, buffer.Length);
-                    }
-
-                    progress(1);
-                }
+                progress(100);
             }
             catch (Exception ex)
             {
+                Debug.Print($"Download exception '{ex}'.");
                 return false;
             }
             return true;
@@ -430,7 +413,7 @@ namespace Pandora.Network
                                     {
                                         if (TryDownloadFile(downloadDetail.RemotePath + downloadDetail.RemoteFile, Path.Combine(downloadDetail.LocalPath, downloadDetail.RemoteFile), p =>
                                         {
-                                            downloadDetail.Progress = $"{(int)(p * 100)}%";
+                                            downloadDetail.Progress = $"{(int)p}%";
                                         }) == false)
                                         {
                                             downloadDetail.Progress = $"Error: Failed to download.";
