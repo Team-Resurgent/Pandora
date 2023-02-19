@@ -6,6 +6,7 @@ namespace Pandora.UI
     public class InputDialog
     {
         private bool m_show;
+        private bool m_open;
 
         public string Title { get; set; } = string.Empty;
 
@@ -26,6 +27,7 @@ namespace Pandora.UI
         {
             ImGui.CloseCurrentPopup();
             Cancelled = cancelled;
+            m_open = false;
         }
 
         public bool Render()
@@ -33,11 +35,17 @@ namespace Pandora.UI
             if (m_show)
             {
                 m_show = false;
+                m_open = true;
                 ImGui.OpenPopup("###inputDialog");
             }
 
+            if (!m_open)
+            {
+                return false;
+            }
+
             var open = true;
-            if (!ImGui.BeginPopupModal($"{Title}###inputDialog", ref open, ImGuiWindowFlags.NoResize))
+            if (!ImGui.BeginPopupModal($"###inputDialog", ref open, ImGuiWindowFlags.NoResize))
             {
                 CloseModal(true);
                 return false;

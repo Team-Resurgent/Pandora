@@ -27,10 +27,10 @@ namespace Pandora
             if (m_show)
             {
                 m_show = false;
-                ImGui.OpenPopup("remoteContextDialog");
+                ImGui.OpenPopup("###remoteContextDialog");
             }
 
-            if (!ImGui.BeginPopup("remoteContextDialog"))
+            if (!ImGui.BeginPopup("###remoteContextDialog"))
             {
                 return RemoteContextAction.None;
             }
