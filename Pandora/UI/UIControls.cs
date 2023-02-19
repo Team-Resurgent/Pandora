@@ -184,7 +184,7 @@ namespace Pandora.UI
             }
         }
 
-        public static void GenerateFolderIcon(Vector2 location, float size)
+        public static void GenerateFileIcon(Vector2 location, float size)
         {
             var points = new[] {
                 new Vector2(0.0f,0.0f), new Vector2(45.0f, 0.0f),
@@ -197,7 +197,7 @@ namespace Pandora.UI
             DrawLines(points, location, size);
         }
 
-        public static void GenerateFileIcon(Vector2 location, float size)
+        public static void GenerateFolderIcon(Vector2 location, float size)
         {
             var points = new[] {
                 new Vector2(12.5f,0.0f), new Vector2(62.5f, 0.0f),

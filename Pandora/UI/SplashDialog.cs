@@ -26,11 +26,11 @@ namespace Pandora.UI
             if (m_show)
             {
                 m_show = false;
-                ImGui.OpenPopup("##splashDialog");
+                ImGui.OpenPopup("###splashDialog");
             }
 
             bool open = true;
-            if (!ImGui.BeginPopupModal("##splashDialog", ref open, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
+            if (!ImGui.BeginPopupModal("###splashDialog", ref open, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground))
             {
                 return false;
             }

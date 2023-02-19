@@ -11,9 +11,6 @@ using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using Vortice.DXGI;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Memory;
 
 namespace Pandora
 {
@@ -36,6 +33,8 @@ namespace Pandora
         private CommandList? m_commandList;
         private ImGuiController? m_controller;
         private RemoteContextDialog m_remoteContextDialog = new();
+        private FileContextDialog m_fileContextDialog = new();
+        private InputDialog m_inputDialog = new();
         private SplashDialog m_splashDialog = new();
         private Client? m_client;
         private ClientFileInfo[]? m_cachedRemoteFileInfo;
@@ -165,9 +164,15 @@ namespace Pandora
                 }
 
                 var selected = false;
-                if (UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.Directory) == UIControls.SelectableState.Clicked)
+                var state = UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.File);
+                if (state == UIControls.SelectableState.Clicked)
                 {
                     LocalSelectedFolder = fse;
+                }
+                else if (state == UIControls.SelectableState.ShowContext)
+                {
+                    m_fileContextDialog.LocalPath = fse;
+                    m_fileContextDialog.ShowdDialog();
                 }
             }
         }
@@ -195,7 +200,12 @@ namespace Pandora
                 }
 
                 var selected = false;
-                UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.File);
+                var state = UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.Directory);
+                if (state == UIControls.SelectableState.ShowContext)
+                {
+                    m_fileContextDialog.LocalPath = fse;
+                    m_fileContextDialog.ShowdDialog();
+                }
             }
         }
 
@@ -220,6 +230,47 @@ namespace Pandora
                     }
                     m_client.AddFileToDownloadStore(RemoteSelectedFolder, remotePath, localPath, fileSize);                                        
                 }).Start();
+            }
+
+            if (m_inputDialog.Render() == true && m_inputDialog.Action.Equals("CREATEFOLDER"))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.Combine(LocalSelectedFolder, m_inputDialog.Input));
+                }
+                catch
+                {
+                }
+            }
+
+            var fileContextState = m_fileContextDialog.Render();
+            if (fileContextState == FileContextDialog.FileContextAction.CreateFolder)
+            {
+                m_inputDialog.Title = "Create Folder";
+                m_inputDialog.Action = "CREATEFOLDER";
+                m_inputDialog.Message = "Please input folder name.";
+                m_inputDialog.Input = string.Empty;
+                m_inputDialog.ShowdDialog();
+            }
+            else if (fileContextState == FileContextDialog.FileContextAction.DeleteFolder)
+            {
+                try
+                {
+                    Directory.Delete(Path.Combine(m_fileContextDialog.LocalPath), true);
+                }
+                catch
+                {
+                }
+            }
+            else if (fileContextState == FileContextDialog.FileContextAction.DeleteFile)
+            {
+                try
+                {
+                    File.Delete(Path.Combine(m_fileContextDialog.LocalPath));
+                }
+                catch
+                {
+                }
             }
 
             m_splashDialog.Render();
@@ -324,7 +375,8 @@ namespace Pandora
                 if (directoryInfo.Parent != null)
                 {
                     var selected = false;
-                    if (UIControls.Selectable(ref selected, "..", new Vector2(halfWidth - 230, lineHeight), UIControls.SelectableIcon.Directory) == UIControls.SelectableState.Clicked)
+                    var state = UIControls.Selectable(ref selected, "..", new Vector2(halfWidth - 230, lineHeight), UIControls.SelectableIcon.Directory);
+                    if (state == UIControls.SelectableState.Clicked)
                     {
                         LocalSelectedFolder = directoryInfo.Parent.FullName;
                     }
@@ -417,7 +469,7 @@ namespace Pandora
                             }
 
                             var selected = false;
-                            var state = UIControls.Selectable(ref selected, clientFileInfo.Name, new Vector2(halfWidth - 28, lineHeight), UIControls.SelectableIcon.Directory);
+                            var state = UIControls.Selectable(ref selected, clientFileInfo.Name, new Vector2(halfWidth - 28, lineHeight), UIControls.SelectableIcon.File);
                             if (state == UIControls.SelectableState.ShowContext) 
                             {
                                 m_remoteContextDialog.RemotePath = clientFileInfo.Path + clientFileInfo.Name;
