@@ -43,20 +43,22 @@ Get ready to open that box up nice and wide :)
 * Just files, on files, on files
 
 ## Install Notes
-* **some stuff you should know**
+* Run Pandora.exe
+* Click on Connect
+* Win!!!
 
 ## Known Issues
-* we never have bugs :)
+* We never have bugs :)
 
 * We ****only*** have happy accidents
 
 ## GUI Functionality
 <div align="center">
 
-***need to add readmeStuff folder***
-<!--![GUI](https://github.com/Team-Resurgent/Pandora/blob/main/readmeStuff/gui.png?raw=true)--></div>
-
-* Connect to Xbins so easy, my grandma could do it.
+![GUI](https://github.com/Team-Resurgent/Pandora/blob/main/readmeStuff/gui.png?raw=true)</div>
+* Click on Connect, it is so easy, my grandma could do it. *
+![GUI](https://github.com/Team-Resurgent/Pandora/blob/main/readmeStuff/gui3.png?raw=true)</div>
+* Navigate Remote directory, find what you need right click and download. *
 
 
 ## Acknowledgements
