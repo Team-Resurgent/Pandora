@@ -164,7 +164,7 @@ namespace Pandora
                 }
 
                 var selected = false;
-                var state = UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.File);
+                var state = UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.Directory);
                 if (state == UIControls.SelectableState.Clicked)
                 {
                     LocalSelectedFolder = fse;
@@ -200,7 +200,7 @@ namespace Pandora
                 }
 
                 var selected = false;
-                var state = UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.Directory);
+                var state = UIControls.Selectable(ref selected, name, new Vector2(width, lineHeight), UIControls.SelectableIcon.File);
                 if (state == UIControls.SelectableState.ShowContext)
                 {
                     m_fileContextDialog.LocalPath = fse;
