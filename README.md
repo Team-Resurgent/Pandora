@@ -43,7 +43,8 @@ Get ready to open that box up nice and wide :)
 * Just files, on files, on files
 
 ## Install Notes
-* Run Pandora.exe
+* [Download](https://github.com/Team-Resurgent/Pandora/releases)
+* Run Pandora
 * Click on Connect
 * Win!!!
 
