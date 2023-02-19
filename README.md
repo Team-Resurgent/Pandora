@@ -55,10 +55,11 @@ Get ready to open that box up nice and wide :)
 ## GUI Functionality
 <div align="center">
 
-![GUI](https://github.com/Team-Resurgent/Pandora/tree/main/readmeStuff/Gui.jpg?raw=true)</div>
-* Click on Connect, it is so easy, my grandma could do it. *
+![GUI](https://github.com/Team-Resurgent/Pandora/tree/main/readmeStuff/Gui1.jpg?raw=true)</div>
+* Click on Connect, it is so easy, my grandma could do it.
+
 ![GUI](https://github.com/Team-Resurgent/Pandora/tree/main/readmeStuff/Gui3.jpg?raw=true)</div>
-* Navigate Remote directory, find what you need right click and download. *
+* Navigate Remote directory, find what you need right click and download.
 
 
 ## Acknowledgements
