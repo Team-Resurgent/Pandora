@@ -35,7 +35,7 @@ Get ready to open that box up nice and wide :)
 * RAM: 4gb of RAM is recommended for proper operation.
 
 ## Prerequisites
-	* A GPU ***capable of running DirectX 11 or better***!
+  * A GPU ***capable of running DirectX 11 or better***!
   * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
 
 ## Core Features & Functionality
