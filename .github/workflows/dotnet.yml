@@ -14,10 +14,17 @@ jobs:
     strategy:
       matrix:
         arch: [x64]
-        os: [ubuntu-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest]
         os_flavor: [win-x64, linux-x64, osx-x64]
         project: [Pandora]
         project_lowercase: [pandora]
+        exclude:
+          - os: windows-latest
+            os_flavor: linux-x64
+          - os: windows-latest
+            os_flavor: osx-x64
+          - os: ubuntu-latest
+            os_flavor: win-x64
         include:
           - os: windows-latest
             os_flavor: win-x64
