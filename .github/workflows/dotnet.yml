@@ -12,20 +12,24 @@ permissions:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix-os }} ubuntu-latest
 
     strategy:
       matrix:
         arch: [x64]
-        os_flavor: [win-x64,linux-x64,osx-x64]
+        os: [ubuntu-latest, windows-latest]
+        os_flavor: [win-x64, linux-x64, osx-x64]
         project: [Pandora]
         project_lowercase: [pandora]
         include:
-          - os_flavor: win-x64
+          - os: windows-latest
+            os_flavor: win-x64
             archive_ext: zip
-          - os_flavor: linux-x64
+          - os: ubuntu-latest
+            os_flavor: linux-x64
             archive_ext: tar
-          - os_flavor: osx-x64
+          - os: ubuntu-latest
+            os_flavor: osx-x64
             archive_ext: tar
 
     steps:
