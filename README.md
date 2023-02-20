@@ -35,11 +35,12 @@ Get ready to open that box up nice and wide :)
 * RAM: 4gb of RAM is recommended for proper operation.
 
 ## Prerequisites
+	* A GPU ***capable of running DirectX 11 or better***
   * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
 
 ## Core Features & Functionality
-* No IRC 
-* No BS 
+* No additional IRC client
+* No extra BS 
 * Just files, on files, on files
 
 ## Install Notes
@@ -51,7 +52,7 @@ Get ready to open that box up nice and wide :)
 ## Known Issues
 * We never have bugs :)
 
-* We ****only*** have happy accidents
+* We ***only*** have happy accidents
 
 ## GUI Functionality
 <div align="center">
