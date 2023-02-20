@@ -11,9 +11,6 @@ permissions:
 
 jobs:
   build:
-
-    runs-on: ${{ matrix-os }}
-
     strategy:
       matrix:
         arch: [x64]
@@ -31,6 +28,7 @@ jobs:
           - os: ubuntu-latest
             os_flavor: osx-x64
             archive_ext: tar
+    runs-on: ${{ matrix-os }}
 
     steps:
     - uses: actions/checkout@v3
