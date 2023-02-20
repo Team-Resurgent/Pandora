@@ -15,7 +15,7 @@ Get ready to open that box up nice and wide :)
 
 </div>
 
-				[ Program ..................................... Pandora V1.0.0 Beta ]
+				[ Program ..................................... Pandora V1.0.2 Beta ]
 				[ Type .............................................. Xbins Manager ]
 				[ Patreon ....................https://www.patreon.com/teamresurgent ]
 
@@ -33,24 +33,27 @@ Get ready to open that box up nice and wide :)
 * OS: Windows 7+ x64, x86-64 Linux, or MacOS (verified on Big Sur, should run from High Sierra onwards, please report any findings). 32-bit is not supported.
     * Pandora can be ran in a virtual machine with GPU passthrough. (Virtual GPU must be disabled)
 * RAM: 4gb of RAM is recommended for proper operation.
+* A GPU ***capable of running DirectX 11 or better***!
 
 ## Prerequisites
+
   * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
 
 ## Core Features & Functionality
-* No IRC 
-* No BS 
+* No additional IRC client
+* No extra BS 
 * Just files, on files, on files
 
 ## Install Notes
-* Run Pandora.exe
+* [Download](https://github.com/Team-Resurgent/Pandora/releases)
+* Run Pandora
 * Click on Connect
 * Win!!!
 
 ## Known Issues
 * We never have bugs :)
 
-* We ****only*** have happy accidents
+* We ***only*** have happy accidents
 
 ## GUI Functionality
 <div align="center">
