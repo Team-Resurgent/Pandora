@@ -2,7 +2,7 @@
 
 public static class Program
 { 
-    const string version = "v1.0.2";
+    const string version = "v1.0.3";
 
     static void Main(string[] args)
     {

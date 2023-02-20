@@ -80,7 +80,7 @@ namespace Pandora
 
             m_splashTexture = CreateSplashTexture();
 
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621, 0))
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000, 0))
             {
                 int value = -1;
                 uint DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
