@@ -12,7 +12,7 @@ permissions:
 jobs:
   build:
 
-    runs-on: ${{ matrix-os }} ubuntu-latest
+    runs-on: ${{ matrix-os }}
 
     strategy:
       matrix:
