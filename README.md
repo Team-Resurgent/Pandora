@@ -37,7 +37,8 @@ Get ready to open that box up nice and wide :)
 
 ## Prerequisites
 
-  * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
+  * [32-bit (x86) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
+  * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
 ## Core Features & Functionality
 * No additional IRC client
