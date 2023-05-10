@@ -7,6 +7,7 @@
 [![.NET](https://github.com/Team-Resurgent/Pandora/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Team-Resurgent/Pandora/actions/workflows/dotnet.yml)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/VcdSfajQGK)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J7L5UMN)
 [![Patreon](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/teamresurgent)
 
 Pandora is a modern Xbins browser. 
@@ -15,7 +16,7 @@ Get ready to open that box up nice and wide :)
 
 </div>
 
-				[ Program ..................................... Pandora V1.0.2 Beta ]
+				[ Program ..................................... Pandora V1.0.3 Beta ]
 				[ Type .............................................. Xbins Manager ]
 				[ Patreon ....................https://www.patreon.com/teamresurgent ]
 
