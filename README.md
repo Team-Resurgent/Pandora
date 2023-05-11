@@ -78,3 +78,14 @@ Get ready to open that box up nice and wide :)
 * To all the people behind projects such as [xemu](https://github.com/mborgerson/xemu) and [Insignia](https://insignia.live/). Keep up the amazing work! We can't wait for your final product releases.
 * Greetz to the following scene people, in no particular order - Milenko, Iriez, Mattie, ODB718, ILTB, HoZy, IceKiller, Rowdy360, Lantus, Kl0wn, nghtshd, Redline99, The_Mad_M, Und3ad, HermesConrad, Rocky5, xbox7887, tuxuser, Masonly, manderson, InsaneNutter, IDC, Fyb3roptik, Bucko, Aut0botKilla, headph0ne,Xer0 449, hazardous774, rusjr1908, Octal450, Gunz4Hire, Dai, bluemeanie23, T3, ToniHC, Emaxx, Incursion64, empyreal96, Fredr1kh, Natetronn, braxtron, Dempsey_86, xXBeefyDjXx
 <!--* I'm sure there is someone else that belongs here too ;)-->
+
+
+<div align="center">
+  
+![GitHub contributors](https://img.shields.io/github/contributors/Team-Resurgent/Pandora?style=flat-square)
+![GitHub repo file count](https://img.shields.io/github/directory-file-count/Team-Resurgent/Pandora?style=flat-square)
+![Lines of code](https://img.shields.io/tokei/lines/github/Team-Resurgent/Pandora?style=flat-square)
+![GitHub repo size](https://img.shields.io/github/repo-size/Team-Resurgent/Pandora?style=flat-square)
+![GitHub all releases](https://img.shields.io/github/downloads/Team-Resurgent/Pandora/total?style=flat-square)
+
+</div>
