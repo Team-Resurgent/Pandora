@@ -15,7 +15,7 @@ Get ready to open that box up nice and wide :)
 
 </div>
 
-				[ Program ..................................... Pandora V1.0.2 Beta ]
+				[ Program .......................................... Pandora V1.0.4 ]
 				[ Type .............................................. Xbins Manager ]
 				[ Patreon ....................https://www.patreon.com/teamresurgent ]
 

@@ -11,10 +11,10 @@ namespace Pandora.UI
     {
         private bool m_show = false;
         private bool m_requestedClose = false;
-        private IntPtr m_splashTexture;
+        private int m_splashTexture;
         private DateTime m_started;
 
-        public void ShowdDialog(IntPtr splashTexture)
+        public void ShowdDialog(int splashTexture)
         {
             m_started = DateTime.Now;
             m_splashTexture = splashTexture;
@@ -39,7 +39,7 @@ namespace Pandora.UI
             var time = DateTime.Now - m_started;
             if (time.TotalMilliseconds > 1000)
             {
-                fade = (float)Math.Max((1000 - (time.TotalMilliseconds - 1000)) / 1000, 0);
+                fade = (float)Math.Max((1000 - (time.TotalMilliseconds - 3000)) / 1000, 0);
             }
 
             ImGui.Image(m_splashTexture, new Vector2(640, 480), Vector2.Zero, Vector2.One, new Vector4(1.0f, 1.0f, 1.0f, fade));

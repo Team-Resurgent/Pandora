@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -28,14 +28,8 @@
 		<EmbeddedResource Include="Resources\dialup.mp3" />
 		<EmbeddedResource Include="Resources\disconnect.mp3" />
 		<EmbeddedResource Include="Resources\TeamResurgent.jpg" />
-		<EmbeddedResource Include="Shaders/GLSL/imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
-		<EmbeddedResource Include="Shaders/GLSL/imgui-frag.glsl" LogicalName="imgui-frag.glsl" />
-		<EmbeddedResource Include="Shaders/HLSL/imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
-		<EmbeddedResource Include="Shaders/HLSL/imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
-		<EmbeddedResource Include="Shaders/SPIR-V/imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
-		<EmbeddedResource Include="Shaders/SPIR-V/imgui-frag.spv" LogicalName="imgui-frag.spv" />
-		<EmbeddedResource Include="Shaders/Metal/imgui-vertex.metallib" LogicalName="imgui-vertex.metallib" />
-		<EmbeddedResource Include="Shaders/Metal/imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
+		<EmbeddedResource Include="Resources\imgui-vertex.glsl" />
+		<EmbeddedResource Include="Resources\imgui-frag.glsl" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -60,11 +54,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FluentFTP" Version="45.0.4" />
-		<PackageReference Include="ImGui.NET" Version="1.89.4" />
+		<PackageReference Include="FluentFTP" Version="46.0.2" />
+		<PackageReference Include="ImGui.NET" Version="1.89.5" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
-		<PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+		<PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -74,6 +68,12 @@
 	<ItemGroup>
 	  <None Include="..\LICENSE.md" Link="LICENSE.md" />
 	  <None Include="..\Pandora.nfo" Link="Pandora.nfo" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="OpenTK">
+	    <HintPath>..\..\OpenTK.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

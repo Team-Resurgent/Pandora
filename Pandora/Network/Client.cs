@@ -3,7 +3,6 @@ using System.Text;
 using FluentFTP;
 using System.Net;
 using System.Diagnostics;
-using Vulkan;
 using Pandora.Helpers;
 using ManagedBass;
 using FluentFTP.Helpers;

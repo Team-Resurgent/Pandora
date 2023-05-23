@@ -1,12 +1,13 @@
 ﻿using Pandora;
 
-public static class Program
-{ 
-    const string version = "v1.0.3";
-
-    static void Main(string[] args)
-    {
-        var PandoraUI = new PandoraUI();
-        PandoraUI.Start(version);
-    }
+try
+{
+    var version = "V1.0.4";
+    var application = new ApplicationUI();
+    application.Start(version);
+}
+catch (Exception ex)
+{
+    var now = DateTime.Now.ToString("MMddyyyyHHmmss");
+    File.WriteAllText($"Crashlog-{now}.txt", ex.ToString());
 }
