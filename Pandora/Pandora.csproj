@@ -72,7 +72,7 @@
 
 	<ItemGroup>
 	  <Reference Include="OpenTK">
-	    <HintPath>..\..\OpenTK.dll</HintPath>
+	    <HintPath>OpenTK.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 
