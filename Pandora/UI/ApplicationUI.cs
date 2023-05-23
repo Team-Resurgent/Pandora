@@ -92,7 +92,7 @@ namespace Pandora
             float previousPollTimeSeconds = 0;
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            while (m_window.Exists)
+            while (true)
             {
                 InputSnapshot snapshot = m_window.PumpEvents();
                 if (!m_window.Exists)
