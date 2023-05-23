@@ -55,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.project }}-${{ matrix.os_flavor }}
-        path: ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net6.0/${{ matrix.os_flavor }}/publish/*
+        path: ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net7.0/${{ matrix.os_flavor }}/publish/*
         if-no-files-found: error
     - name: Create draft Release
       uses: softprops/action-gh-release@v1
