@@ -11,15 +11,20 @@ permissions:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
         arch: [x64]
-        os_flavor: [win-x64,linux-x64,osx-x64]
+        os: [windows-latest, ubuntu-latest]
+        os_flavor: [win-x64, linux-x64, osx-x64]
         project: [Pandora]
         project_lowercase: [pandora]
+        exclude:
+          - os: windows-latest
+            os_flavor: linux-x64
+          - os: windows-latest
+            os_flavor: osx-x64
+          - os: ubuntu-latest
+            os_flavor: win-x64
         include:
           - os_flavor: win-x64
             archive_ext: zip
@@ -27,6 +32,7 @@ jobs:
             archive_ext: tar
           - os_flavor: osx-x64
             archive_ext: tar
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
@@ -45,8 +51,6 @@ jobs:
       run: chmod +x ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net6.0/${{ matrix.os_flavor }}/publish/${{ matrix.project_lowercase }}
     - name: Compress binaries
       run: 7z a ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }} ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net6.0/${{ matrix.os_flavor }}/publish/*
-    - name: List directories and files
-      run: find .
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v3
       with:

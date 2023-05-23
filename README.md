@@ -7,8 +7,12 @@
 [![.NET](https://github.com/Team-Resurgent/Pandora/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Team-Resurgent/Pandora/actions/workflows/dotnet.yml)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/VcdSfajQGK)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J7L5UMN)
 [![Patreon](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/teamresurgent)
 
+
+[![Download](https://img.shields.io/badge/download-latest-brightgreen.svg?style=for-the-badge&logo=github)](https://github.com/Team-Resurgent/Pandora/releases/latest)
+	
 Pandora is a modern Xbins browser. 
 
 Get ready to open that box up nice and wide :)
@@ -37,7 +41,8 @@ Get ready to open that box up nice and wide :)
 
 ## Prerequisites
 
-  * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
+  * [32-bit (x86) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x86.exe)
+  * [64-bit (x64) Visual C++ 2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
 ## Core Features & Functionality
 * No additional IRC client
@@ -73,3 +78,14 @@ Get ready to open that box up nice and wide :)
 * To all the people behind projects such as [xemu](https://github.com/mborgerson/xemu) and [Insignia](https://insignia.live/). Keep up the amazing work! We can't wait for your final product releases.
 * Greetz to the following scene people, in no particular order - Milenko, Iriez, Mattie, ODB718, ILTB, HoZy, IceKiller, Rowdy360, Lantus, Kl0wn, nghtshd, Redline99, The_Mad_M, Und3ad, HermesConrad, Rocky5, xbox7887, tuxuser, Masonly, manderson, InsaneNutter, IDC, Fyb3roptik, Bucko, Aut0botKilla, headph0ne,Xer0 449, hazardous774, rusjr1908, Octal450, Gunz4Hire, Dai, bluemeanie23, T3, ToniHC, Emaxx, Incursion64, empyreal96, Fredr1kh, Natetronn, braxtron, Dempsey_86, xXBeefyDjXx
 <!--* I'm sure there is someone else that belongs here too ;)-->
+
+
+<div align="center">
+  
+![GitHub contributors](https://img.shields.io/github/contributors/Team-Resurgent/Pandora?style=flat-square)
+![GitHub repo file count](https://img.shields.io/github/directory-file-count/Team-Resurgent/Pandora?style=flat-square)
+![Lines of code](https://img.shields.io/tokei/lines/github/Team-Resurgent/Pandora?style=flat-square)
+![GitHub repo size](https://img.shields.io/github/repo-size/Team-Resurgent/Pandora?style=flat-square)
+![GitHub all releases](https://img.shields.io/github/downloads/Team-Resurgent/Pandora/total?style=flat-square)
+
+</div>
