@@ -11,20 +11,14 @@ permissions:
 
 jobs:
   build:
+  
+    runs-on: ubuntu-latest
+     
     strategy:
       matrix:
         arch: [x64]
-        os: [windows-latest, ubuntu-latest]
-        os_flavor: [win-x64, linux-x64, osx-x64]
+        os_flavor: [win-x64,linux-x64,osx-x64]
         project: [Pandora]
-        project_lowercase: [pandora]
-        exclude:
-          - os: windows-latest
-            os_flavor: linux-x64
-          - os: windows-latest
-            os_flavor: osx-x64
-          - os: ubuntu-latest
-            os_flavor: win-x64
         include:
           - os_flavor: win-x64
             archive_ext: zip
@@ -32,7 +26,6 @@ jobs:
             archive_ext: tar
           - os_flavor: osx-x64
             archive_ext: tar
-    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
