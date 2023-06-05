@@ -310,7 +310,7 @@ namespace Pandora
 
             var lineHeight = ImGui.GetTextLineHeight() + 4;
 
-            if (ImGui.BeginChildFrame(1, new Vector2(200, m_window.Height - (358 + 78)), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(1, new Vector2(200, m_window.Height - (358 + 88)), ImGuiWindowFlags.None))
             {
                 var specialFolders = Utility.GetSpecialFolders();
                 foreach (var specialFolder in specialFolders)
@@ -327,7 +327,7 @@ namespace Pandora
 
             ImGui.SameLine();
 
-            if (ImGui.BeginChildFrame(2, new Vector2(halfWidth - 222, m_window.Height - (358 + 78)), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(2, new Vector2(halfWidth - 222, m_window.Height - (358 + 88)), ImGuiWindowFlags.None))
             {
                 var directoryInfo = new DirectoryInfo(LocalSelectedFolder);
                 if (directoryInfo.Parent != null)
@@ -358,7 +358,7 @@ namespace Pandora
             {
                 ImGui.BeginDisabled();
             }
-            if (ImGui.BeginChildFrame(3, new Vector2(halfWidth - 14, m_window.Height - (358 + 78)), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(3, new Vector2(halfWidth - 14, m_window.Height - (358 + 88)), ImGuiWindowFlags.None))
             {
                 if (m_client != null)
                 {
@@ -545,30 +545,30 @@ namespace Pandora
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Clear Queue", new Vector2(100, 30)))
+            if (ImGui.Button("Clear Queue", new Vector2(125, 30)))
             {
                 DownloadDetailStore.ClearDownloadDeatails();
             }
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Clear Completed", new Vector2(100, 30)))
+            if (ImGui.Button("Clear Completed", new Vector2(125, 30)))
             {
                 DownloadDetailStore.ClearCompletedDownloadDeatails();
             }
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Retry Failed", new Vector2(100, 30)))
+            if (ImGui.Button("Retry Failed", new Vector2(125, 30)))
             {
                 DownloadDetailStore.RetryDownloadDeatails();
             }
 
             ImGui.SameLine();
 
-            ImGui.SetCursorPosX(m_window.Width - 108);
+            ImGui.SetCursorPosX(m_window.Width - 133);
 
-            if (ImGui.Button("Visit Patreon", new Vector2(100, 30)))
+            if (ImGui.Button("Visit Patreon", new Vector2(125, 30)))
             {
                 var link = "https://www.patreon.com/teamresurgent";
                 try
@@ -592,7 +592,7 @@ namespace Pandora
                 }
             }
 
-            ImGui.SetCursorPos(new Vector2(m_window.Width - 248, m_window.Height - 32));
+            ImGui.SetCursorPos(new Vector2(m_window.Width - 273, m_window.Height - 32));
             ImGui.Text("Coded by EqUiNoX");
 
             ImGui.End();
