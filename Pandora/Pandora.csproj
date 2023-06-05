@@ -15,7 +15,7 @@
 		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 		<OutputType>WinExe</OutputType>
 		<AssemblyName>pandora</AssemblyName>
-		<Platforms>AnyCPU;x64</Platforms>
+		<Platforms>x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>
