@@ -3,20 +3,14 @@ using ManagedBass;
 using Pandora.Helpers;
 using Pandora.Network;
 using Pandora.UI;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL;
-using Veldrid;
-using Veldrid.Sdl2;
-using System;
-using OpenTK.Graphics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Pandora
 {
-    public class ApplicationUI 
+    public unsafe class ApplicationUI 
     {
         private class LogDetail
         {
@@ -30,7 +24,7 @@ namespace Pandora
             }
         }
 
-        private Sdl2Window? m_window;
+        private Window? m_window;
         private ImGuiController? m_controller;
         private RemoteContextDialog m_remoteContextDialog = new();
         private FileContextDialog m_fileContextDialog = new();
@@ -58,12 +52,9 @@ namespace Pandora
         {
             var admin = Utility.IsAdmin() ? " ADMIN" : string.Empty;
 
-            m_window = new Sdl2Window($"Pandora - {version}{admin}", 50, 50, 1280, 720, SDL_WindowFlags.Shown | SDL_WindowFlags.Resizable | SDL_WindowFlags.OpenGL, true);
-
-            var windowInfo = OpenTK.Platform.Utilities.CreateSdl2WindowInfo(m_window.SdlWindowHandle);
-            var graphicsContext = new GraphicsContext(GraphicsMode.Default, windowInfo);
-            graphicsContext.LoadAll();
-            graphicsContext.MakeCurrent(windowInfo);
+            m_window = new Window();
+            m_window.Title = $"Pandora - {version}{admin}";
+            m_window.Size = new OpenTK.Mathematics.Vector2i(1280, 720);
 
             m_controller = new ImGuiController(m_window.Width, m_window.Height);
 
@@ -71,7 +62,7 @@ namespace Pandora
             {
                 int value = -1;
                 uint DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-                DwmSetWindowAttribute(m_window.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref value, sizeof(int));
+                _ = DwmSetWindowAttribute(GLFW.GetWin32Window(m_window.WindowPtr), DWMWA_USE_IMMERSIVE_DARK_MODE, ref value, sizeof(int));
             }
 
             UIControls.SetTeamResurgentTheme();
@@ -82,44 +73,14 @@ namespace Pandora
             var disconnectData = ResourceLoader.GetEmbeddedResourceBytes("disconnect.mp3", typeof(ApplicationUI).Assembly);
             m_disconnectHandle = Bass.CreateStream(disconnectData, 0, disconnectData.Length, BassFlags.Default);
 
-            m_window.Resized += () =>
-            {
-                m_controller.WindowResized(m_window.Width, m_window.Height);
-            };
-
             m_config = Config.LoadConfig();
 
-            float previousPollTimeSeconds = 0;
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            while (true)
-            {
-                InputSnapshot snapshot = m_window.PumpEvents();
-                if (!m_window.Exists)
-                {
-                    break;
-                }
-
-                float currentTimeSeconds = (float)(stopwatch.ElapsedMilliseconds / 1000.0f);
-                m_controller.Update(currentTimeSeconds, snapshot);
-
-                RenderUI();
-
-                GL.Viewport(0, 0, m_window.Width, m_window.Height);
-                GL.ClearColor(new Color4(0, 0, 0, 255));
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
-                m_controller.Render();
-
-                Sdl2Native.SDL_GL_SwapWindow(m_window.SdlWindowHandle);
-
-                previousPollTimeSeconds = currentTimeSeconds;
-            }
+            m_window.RenderUI = RenderUI;
+            m_window.Run();
 
             Bass.StreamFree(m_dialupHandle);
             Bass.Free();
 
-            m_controller.Dispose();
             m_client?.Dispose();
         }
 
@@ -199,7 +160,8 @@ namespace Pandora
 
         private void RenderUI()
         {
-            if (m_window == null)
+            if (m_window == null || 
+                m_controller == null)
             {
                 return;
             }

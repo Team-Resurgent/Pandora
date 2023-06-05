@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using Pandora.Network;
 
 namespace Pandora
 {

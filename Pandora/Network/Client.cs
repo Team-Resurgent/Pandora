@@ -4,8 +4,6 @@ using FluentFTP;
 using System.Net;
 using System.Diagnostics;
 using Pandora.Helpers;
-using ManagedBass;
-using FluentFTP.Helpers;
 
 namespace Pandora.Network
 {

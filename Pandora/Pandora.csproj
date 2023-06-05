@@ -15,6 +15,7 @@
 		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 		<OutputType>WinExe</OutputType>
 		<AssemblyName>pandora</AssemblyName>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -57,8 +58,8 @@
 		<PackageReference Include="FluentFTP" Version="46.0.2" />
 		<PackageReference Include="ImGui.NET" Version="1.89.5" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
+		<PackageReference Include="OpenTK" Version="4.7.7" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
-		<PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -68,12 +69,6 @@
 	<ItemGroup>
 	  <None Include="..\LICENSE.md" Link="LICENSE.md" />
 	  <None Include="..\Pandora.nfo" Link="Pandora.nfo" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Reference Include="OpenTK">
-	    <HintPath>OpenTK.dll</HintPath>
-	  </Reference>
 	</ItemGroup>
 
 </Project>

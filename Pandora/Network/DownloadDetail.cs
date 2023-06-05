@@ -1,6 +1,4 @@
-﻿using FluentFTP.Helpers;
-
-namespace Pandora.Network
+﻿namespace Pandora.Network
 {
     public class DownloadDetail
     {
