@@ -21,6 +21,7 @@
 	<ItemGroup>
 	  <None Remove="Resources\dialup.mp3" />
 	  <None Remove="Resources\disconnect.mp3" />
+	  <None Remove="Resources\icon.png" />
 	  <None Remove="Resources\TeamResurgent.jpg" />
 	</ItemGroup>
 
@@ -28,6 +29,7 @@
 		<EmbeddedResource Include="Resources\ARIALUNI.TTF" />
 		<EmbeddedResource Include="Resources\dialup.mp3" />
 		<EmbeddedResource Include="Resources\disconnect.mp3" />
+		<EmbeddedResource Include="Resources\icon.png" />
 		<EmbeddedResource Include="Resources\TeamResurgent.jpg" />
 		<EmbeddedResource Include="Resources\imgui-vertex.glsl" />
 		<EmbeddedResource Include="Resources\imgui-frag.glsl" />
