@@ -55,6 +55,7 @@ namespace Pandora
             m_window = new Window();
             m_window.Title = $"Pandora - {version}{admin}";
             m_window.Size = new OpenTK.Mathematics.Vector2i(1280, 720);
+            m_window.VSync = OpenTK.Windowing.Common.VSyncMode.On;
 
             var resourceBytes = ResourceLoader.GetEmbeddedResourceBytes("Pandora.Resources.icon.png");
             using var resourceImage = SixLabors.ImageSharp.Image.Load<Rgba32>(resourceBytes);
