@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 
 namespace Pandora
 {
@@ -24,8 +25,7 @@ namespace Pandora
             }
         }
 
-        private Window? m_window;
-        private ImGuiController? m_controller;
+        private Window m_window;
         private RemoteContextDialog m_remoteContextDialog = new();
         private FileContextDialog m_fileContextDialog = new();
         private InputDialog m_inputDialog = new();
@@ -40,6 +40,7 @@ namespace Pandora
         private bool m_showSplash = true;
         private int m_dialupHandle;
         private int m_disconnectHandle;
+        private string m_version;
 
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath() ?? string.Empty;
 
@@ -48,12 +49,23 @@ namespace Pandora
         [DllImport("dwmapi.dll", PreserveSig = true)]
         public static extern int DwmSetWindowAttribute(IntPtr hwnd, uint attr, ref int attrValue, int attrSize);
 
-        public void Start(string version)
+        public ApplicationUI(string version)
+        {
+            m_window = new Window();
+            m_version = version;
+        }
+
+        private Vector2 GetScaledWindowSize()
+        {
+            return new Vector2(m_window.Size.X, m_window.Size.Y) / m_window.Controller.GetScaleFactor();
+        }
+
+        public void Run()
         {
             var admin = Utility.IsAdmin() ? " ADMIN" : string.Empty;
 
             m_window = new Window();
-            m_window.Title = $"Pandora - {version}{admin}";
+            m_window.Title = $"Pandora - {m_version}{admin}";
             m_window.Size = new OpenTK.Mathematics.Vector2i(1280, 720);
             m_window.VSync = OpenTK.Windowing.Common.VSyncMode.On;
 
@@ -64,8 +76,6 @@ namespace Pandora
             var byteSpan = MemoryMarshal.AsBytes(pixelSpan);
             var iconImage = new OpenTK.Windowing.Common.Input.Image(resourceImage.Width, resourceImage.Height, byteSpan.ToArray());
             m_window.Icon = new OpenTK.Windowing.Common.Input.WindowIcon(iconImage);
-
-            m_controller = new ImGuiController(m_window.Width, m_window.Height);
 
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000, 0))
             {
@@ -169,12 +179,6 @@ namespace Pandora
 
         private void RenderUI()
         {
-            if (m_window == null || 
-                m_controller == null)
-            {
-                return;
-            }
-
             if (m_remoteContextDialog.Render() == RemoteContextDialog.RemoteContextAction.Download)
             {
                 var remotePath = m_remoteContextDialog.RemotePath;
@@ -237,17 +241,19 @@ namespace Pandora
             if (m_showSplash)
             {
                 m_showSplash = false;
-                m_splashDialog.ShowdDialog(m_controller.SplashTexture);
+                m_splashDialog.ShowdDialog(m_window.Controller.SplashTexture);
             }
 
             ImGui.Begin("Main", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
-            ImGui.SetWindowSize(new Vector2(m_window.Width, m_window.Height));
+            ImGui.SetWindowSize(GetScaledWindowSize());
             ImGui.SetWindowPos(new Vector2(0, 0), ImGuiCond.Always);
 
             ImGui.Text("Log:");
 
+            var windowSize = ImGui.GetWindowSize();
+
             ImGuiTableFlags flags = ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX | ImGuiTableFlags.ScrollY | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg;
-            if (ImGui.BeginTable("tableLog", 2, flags, new Vector2(m_window.Width - 16, 170), 0.0f))
+            if (ImGui.BeginTable("tableLog", 2, flags, new Vector2(windowSize.X - 16, 170), 0.0f))
             {
                 ImGui.TableSetupColumn("Log Type", ImGuiTableColumnFlags.WidthFixed, 75.0f, 0);
                 ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthStretch, 300.0f, 1);
@@ -290,7 +296,7 @@ namespace Pandora
 
             ImGui.Spacing();
 
-            var halfWidth = m_window.Width / 2;
+            var halfWidth = (int)(windowSize.X / 2);
 
             ImGui.Text("Local:");
             ImGui.SameLine();
@@ -311,7 +317,7 @@ namespace Pandora
 
             var lineHeight = ImGui.GetTextLineHeight() + 4;
 
-            if (ImGui.BeginChildFrame(1, new Vector2(200, m_window.Height - (358 + 88)), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(1, new Vector2(200, windowSize.Y - (358 + 88)), ImGuiWindowFlags.None))
             {
                 var specialFolders = Utility.GetSpecialFolders();
                 foreach (var specialFolder in specialFolders)
@@ -328,7 +334,7 @@ namespace Pandora
 
             ImGui.SameLine();
 
-            if (ImGui.BeginChildFrame(2, new Vector2(halfWidth - 222, m_window.Height - (358 + 88)), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(2, new Vector2(halfWidth - 222, windowSize.Y - (358 + 88)), ImGuiWindowFlags.None))
             {
                 var directoryInfo = new DirectoryInfo(LocalSelectedFolder);
                 if (directoryInfo.Parent != null)
@@ -359,7 +365,7 @@ namespace Pandora
             {
                 ImGui.BeginDisabled();
             }
-            if (ImGui.BeginChildFrame(3, new Vector2(halfWidth - 14, m_window.Height - (358 + 88)), ImGuiWindowFlags.None))
+            if (ImGui.BeginChildFrame(3, new Vector2(halfWidth - 14, windowSize.Y - (358 + 88)), ImGuiWindowFlags.None))
             {
                 if (m_client != null)
                 {
@@ -451,7 +457,7 @@ namespace Pandora
 
             ImGui.Text("Downloads:");
 
-            if (ImGui.BeginTable("tableDownloads", 4, flags, new Vector2(m_window.Width - 16, 100), 0.0f))
+            if (ImGui.BeginTable("tableDownloads", 4, flags, new Vector2(windowSize.X - 16, 100), 0.0f))
             {
                 ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 75.0f, 0);
                 ImGui.TableSetupColumn("Remote Path", ImGuiTableColumnFlags.WidthFixed, 300.0f, 1);
@@ -507,7 +513,7 @@ namespace Pandora
                 ImGui.EndTable();
             }
 
-            ImGui.SetCursorPosY(m_window.Height - 40);
+            ImGui.SetCursorPosY(windowSize.Y - 40);
 
             if (m_client != null)
             {
@@ -567,7 +573,7 @@ namespace Pandora
 
             ImGui.SameLine();
 
-            ImGui.SetCursorPosX(m_window.Width - 133);
+            ImGui.SetCursorPosX(windowSize.X - 133);
 
             if (ImGui.Button("Visit Patreon", new Vector2(125, 30)))
             {
@@ -593,7 +599,7 @@ namespace Pandora
                 }
             }
 
-            ImGui.SetCursorPos(new Vector2(m_window.Width - 273, m_window.Height - 32));
+            ImGui.SetCursorPos(new Vector2(windowSize.X - 273, windowSize.Y - 32));
             ImGui.Text("Coded by EqUiNoX");
 
             ImGui.End();

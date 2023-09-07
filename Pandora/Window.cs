@@ -2,13 +2,16 @@
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using Pandora.UI;
 
 namespace Pandora
 {
     public class Window : GameWindow
     {
         public Window() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
-        { }
+        {
+            Controller = new ImGuiController(this);
+        }
 
         public int Width => ClientSize.X;
 
@@ -16,16 +19,7 @@ namespace Pandora
 
         public Action? RenderUI { get; set; }
 
-        public ImGuiController? Controller { get; set; }
-
-        protected override void OnLoad()
-        {
-            base.OnLoad();
-
-            Title += " - OpenGL Version: " + GL.GetString(StringName.Version);
-
-            Controller = new ImGuiController(ClientSize.X, ClientSize.Y);
-        }
+        public ImGuiController Controller { get; set; }
 
         protected override void OnResize(ResizeEventArgs e)
         {
