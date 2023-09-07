@@ -64,7 +64,6 @@ namespace Pandora
         {
             var admin = Utility.IsAdmin() ? " ADMIN" : string.Empty;
 
-            m_window = new Window();
             m_window.Title = $"Pandora - {m_version}{admin}";
             m_window.Size = new OpenTK.Mathematics.Vector2i(1280, 720);
             m_window.VSync = OpenTK.Windowing.Common.VSyncMode.On;
