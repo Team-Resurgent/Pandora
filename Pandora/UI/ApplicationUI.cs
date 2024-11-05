@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Pandora
 {
@@ -41,6 +42,7 @@ namespace Pandora
         private int m_dialupHandle;
         private int m_disconnectHandle;
         private string m_version;
+        private string connect_ButtonStatus = "Connect";
 
         public string LocalSelectedFolder { get; set; } = Utility.GetApplicationPath() ?? string.Empty;
 
@@ -247,9 +249,11 @@ namespace Pandora
             ImGui.SetWindowSize(GetScaledWindowSize());
             ImGui.SetWindowPos(new Vector2(0, 0), ImGuiCond.Always);
 
-            ImGui.Text("Log:");
-
             var windowSize = ImGui.GetWindowSize();
+            var halfWidth = (int)(windowSize.X / 2);
+
+            ImGui.SetCursorPos(new Vector2(halfWidth - 15, 5));
+            ImGui.Text("Log");
 
             ImGuiTableFlags flags = ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX | ImGuiTableFlags.ScrollY | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg;
             if (ImGui.BeginTable("tableLog", 2, flags, new Vector2(windowSize.X - 16, 170), 0.0f))
@@ -295,12 +299,11 @@ namespace Pandora
 
             ImGui.Spacing();
 
-            var halfWidth = (int)(windowSize.X / 2);
-
-            ImGui.Text("Local:");
+            ImGui.SetCursorPosX((halfWidth / 2) - 15);
+            ImGui.Text("Local");
             ImGui.SameLine();
-            ImGui.SetCursorPosX(halfWidth);
-            ImGui.Text("Remote:");
+            ImGui.SetCursorPosX((halfWidth + halfWidth / 2) - 15);
+            ImGui.Text("Remote");
 
             ImGui.Spacing();
 
@@ -453,8 +456,8 @@ namespace Pandora
             }
 
             ImGui.Spacing();
-
-            ImGui.Text("Downloads:");
+            ImGui.SetCursorPosX(halfWidth - 33);
+            ImGui.Text("Downloads");
 
             if (ImGui.BeginTable("tableDownloads", 4, flags, new Vector2(windowSize.X - 16, 100), 0.0f))
             {
@@ -516,13 +519,23 @@ namespace Pandora
 
             if (m_client != null)
             {
-                if (ImGui.Button("Disconnect", new Vector2(100, 30)))
+                /*
+                if (m_config.HasFTPDetails())
+                {
+                    connect_ButtonStatus = "Connecting";
+                }
+                else
+                {
+                    connect_ButtonStatus = "Disconnect";
+                }
+                */
+                if (ImGui.Button(connect_ButtonStatus, new Vector2(100, 30)))
                 {
                     m_client?.Dispose();
                     m_client = null;
                 }
             }
-            else if (ImGui.Button("Connect", new Vector2(100, 30)))
+            else if (ImGui.Button(connect_ButtonStatus, new Vector2(100, 30)))
             {
                 m_logDetails.Clear();
                 m_logDetailsChanged = true;
@@ -599,7 +612,7 @@ namespace Pandora
             }
 
             ImGui.SetCursorPos(new Vector2(windowSize.X - 273, windowSize.Y - 32));
-            ImGui.Text("Coded by EqUiNoX");
+            ImGui.Text("By Team Resurgent");
 
             ImGui.End();
         }
@@ -609,6 +622,7 @@ namespace Pandora
             Bass.ChannelStop(m_disconnectHandle);
             Bass.ChannelPlay(m_dialupHandle);
             LogMessage("Connecting...", message);
+            connect_ButtonStatus = "Connecting";
         }
 
         private void OnError(object sender, string error)
@@ -633,11 +647,13 @@ namespace Pandora
             LogMessage("Disconnected", "Bye!");
             m_client?.Dispose();
             m_client = null;
+            connect_ButtonStatus = "Connect";
         }
 
         private void OnConnected(object sender)
         {
             m_cachedRemoteFileInfo = null;
+            connect_ButtonStatus = "Disconnect";
         }
     }
 }

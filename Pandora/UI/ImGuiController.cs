@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Pandora.Helpers;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Pandora
 {
