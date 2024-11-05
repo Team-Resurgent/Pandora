@@ -57,11 +57,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FluentFTP" Version="46.0.2" />
-		<PackageReference Include="ImGui.NET" Version="1.89.5" />
+		<PackageReference Include="FluentFTP" Version="51.1.0" />
+		<PackageReference Include="ImGui.NET" Version="1.89.6" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
-		<PackageReference Include="OpenTK" Version="4.7.7" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+		<PackageReference Include="OpenTK" Version="4.8.2" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
 	</ItemGroup>
 
 	<ItemGroup>
