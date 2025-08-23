@@ -1,36 +1,43 @@
-name: BuildPandora
+name: Build Pandora
 
 on:
   push:
     branches: [ "main", "workflow" ]
   pull_request:
     branches: [ "main", "workflow" ]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
 
 jobs:
   build:
-  
+
     runs-on: ubuntu-latest
-     
+
     strategy:
       matrix:
-        arch: [x64]
-        os_flavor: [win-x64,linux-x64,osx-x64]
+        os_flavor: [win-x64, linux-x64, osx-x64, osx-arm64]
         project: [Pandora]
+        project_lowercase: [pandora]
         include:
           - os_flavor: win-x64
+            arch: x64
             archive_ext: zip
           - os_flavor: linux-x64
+            arch: x64
             archive_ext: tar
           - os_flavor: osx-x64
+            arch: x64
+            archive_ext: tar
+          - os_flavor: osx-arm64
+            arch: arm64
             archive_ext: tar
 
-    steps:   
-    - uses: actions/checkout@v5.0.0
+    steps:
+    - uses: actions/checkout@v5
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.3.1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
@@ -40,18 +47,35 @@ jobs:
     - name: Publish
       run: dotnet publish ./${{ matrix.project }}/${{ matrix.project }}.csproj -p:Platform=${{ matrix.arch }} -r ${{ matrix.os_flavor }} -c Release --self-contained true -p:DebugType=None -p:DebugSymbols=false
     - name: Chmod (Unix)
-      if: ${{ matrix.os_flavor == 'linux-x64' || matrix.os_flavor == 'osx-x64' }}
+      if: ${{ matrix.os_flavor == 'linux-x64' || matrix.os_flavor == 'osx-x64' || matrix.os_flavor == 'osx-arm64'}}
       run: chmod +x ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net7.0/${{ matrix.os_flavor }}/publish/${{ matrix.project_lowercase }}
     - name: Compress binaries
       run: 7z a ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }} ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net7.0/${{ matrix.os_flavor }}/publish/*
+    - name: List directories and files
+      run: find .
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.project }}-${{ matrix.os_flavor }}
-        path: ${{ github.workspace }}/${{ matrix.project }}/bin/${{ matrix.arch }}/Release/net7.0/${{ matrix.os_flavor }}/publish/*
+        path: ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }}
         if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/tags/')
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      id: artifacts
+      with:
+        path: pipeline/build/artifacts
+        merge-multiple: true
+    - name: List Files
+      run: |
+        ls -la ${{ steps.artifacts.outputs.download-path }}
     - name: Create draft Release
-      uses: softprops/action-gh-release@v2.3.2
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/heads/main')
       with:
         tag_name: latest
@@ -59,12 +83,12 @@ jobs:
         files: |
           ${{ github.workspace }}/Pandora.nfo
           ${{ github.workspace }}/README.md
-          ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }}
+          ${{ steps.artifacts.outputs.download-path }}/*
     - name: Create Release
-      uses: softprops/action-gh-release@v2.3.2
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
           ${{ github.workspace }}/Pandora.nfo
           ${{ github.workspace }}/README.md
-          ${{ github.workspace }}/${{ matrix.project }}-${{ matrix.os_flavor }}.${{ matrix.archive_ext }}
+          ${{ steps.artifacts.outputs.download-path }}/*
