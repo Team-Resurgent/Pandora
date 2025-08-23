@@ -1,14 +1,22 @@
-﻿using Pandora;
+﻿using Avalonia;
+using System;
 
-try
+namespace Pandora
 {
-    var version = "V1.0.7";
-    var application = new ApplicationUI(version);
-    application.Run();
-}
-catch (Exception ex)
-{
-    var now = DateTime.Now.ToString("MMddyyyyHHmmss");
-    File.WriteAllText($"Crashlog-{now}.txt", ex.ToString());
-    Console.WriteLine($"Error: {ex}");
+    internal sealed class Program
+    {
+        // Initialization code. Don't use any Avalonia, third-party APIs or any
+        // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
+        // yet and stuff might break.
+        [STAThread]
+        public static void Main(string[] args) => BuildAvaloniaApp()
+            .StartWithClassicDesktopLifetime(args);
+
+        // Avalonia configuration, don't remove; also used by visual designer.
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .WithInterFont()
+                .LogToTrace();
+    }
 }

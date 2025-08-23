@@ -1,39 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<ApplicationIcon>..\Artwork\icon.ico</ApplicationIcon>
-		<PublishTrimmed>false</PublishTrimmed>
-		<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
-		<SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-		<RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
-		<PublishReadyToRun>true</PublishReadyToRun>
-		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-		<OutputType>WinExe</OutputType>
-		<AssemblyName>pandora</AssemblyName>
-		<Platforms>x64</Platforms>
-	</PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>pandora</AssemblyName>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <None Remove="Resources\dialup.mp3" />
-	  <None Remove="Resources\disconnect.mp3" />
-	  <None Remove="Resources\icon.png" />
-	  <None Remove="Resources\TeamResurgent.jpg" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Include="Resources\ARIALUNI.TTF" />
-		<EmbeddedResource Include="Resources\dialup.mp3" />
-		<EmbeddedResource Include="Resources\disconnect.mp3" />
-		<EmbeddedResource Include="Resources\icon.png" />
-		<EmbeddedResource Include="Resources\TeamResurgent.jpg" />
-		<EmbeddedResource Include="Resources\imgui-vertex.glsl" />
-		<EmbeddedResource Include="Resources\imgui-frag.glsl" />
-	</ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<Content Include="..\Artwork\icon.ico" Link="icon.ico" />
@@ -72,5 +51,21 @@
 	  <None Include="..\LICENSE.md" Link="LICENSE.md" />
 	  <None Include="..\Pandora.nfo" Link="Pandora.nfo" />
 	</ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.1" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.2.1">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+  </ItemGroup>
 </Project>
