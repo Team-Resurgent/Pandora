@@ -12,7 +12,7 @@
 
 
 [![Download](https://img.shields.io/badge/download-latest-brightgreen.svg?style=for-the-badge&logo=github)](https://github.com/Team-Resurgent/Pandora/releases/latest)
-	
+
 Pandora is a modern Xbins browser. 
 
 Get ready to open that box up nice and wide :)
@@ -31,6 +31,8 @@ Get ready to open that box up nice and wide :)
 				[ Natetronn ................................................ Tester ]
 				[ zatchbot ................................. Tester / Village Idiot ]
 				[ xXBeefyDjXx .............................................. Tester ]				
+
+# Note: Goto to here for [Pandora V2](https://github.com/Team-Resurgent/Pandora-V2)
 
 ## System Requirements
 ### Minimum
